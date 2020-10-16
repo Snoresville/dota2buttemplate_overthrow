@@ -37,5 +37,25 @@
 	{
 		"timer_reminder"			"short"
 	}
+	"npc_first_spawn"
+	{
+		"entindex"		"short"
+	}
+	"created_game_mode_entity"
+	{
+		"gameModeEntity"	"local"
+	}
+	"game_rules_state_game_in_progress"
+	{
+	}
+	"addon_game_mode_precache"
+	{
+	}
+	"addon_game_mode_spawn"
+	{
+	}
+	"addon_game_mode_activate"
+	{
+	}
 }
 
