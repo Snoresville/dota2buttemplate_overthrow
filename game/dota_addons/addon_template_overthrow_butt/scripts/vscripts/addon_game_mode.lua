@@ -40,7 +40,6 @@ function Spawn()
 
 	gmE:SetUseDefaultDOTARuneSpawnLogic(true)
 	gmE:SetTowerBackdoorProtectionEnabled(true)
-	GameRules:SetShowcaseTime(0)
 
 	FireGameEvent("created_game_mode_entity",{gameModeEntity = gmE})
 end

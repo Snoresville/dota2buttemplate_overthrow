@@ -17,6 +17,7 @@ ListenToGameEvent("entity_killed", function(keys)
 
 	if (killedUnit and killedUnit:IsRealHero()) then
 		-- when a hero dies
+		EmitGlobalSound("tacobell")
 	end
 
 end, nil)
@@ -133,29 +134,10 @@ function COverthrowGameMode:OnGameRulesStateChange()
 	end
 
 	if nNewState == DOTA_GAMERULES_STATE_PRE_GAME then
-		local numberOfPlayers = PlayerResource:GetPlayerCount()
-		if numberOfPlayers > 7 then
-			--self.TEAM_KILLS_TO_WIN = 25
-			nCOUNTDOWNTIMER = 901
-		elseif numberOfPlayers > 4 and numberOfPlayers <= 7 then
-			--self.TEAM_KILLS_TO_WIN = 20
-			nCOUNTDOWNTIMER = 721
-		else
-			--self.TEAM_KILLS_TO_WIN = 15
-			nCOUNTDOWNTIMER = 601
-		end
-		if GetMapName() == "forest_solo" then
-			self.TEAM_KILLS_TO_WIN = 25
-		elseif GetMapName() == "desert_duo" then
-			self.TEAM_KILLS_TO_WIN = 30
-		elseif GetMapName() == "desert_quintet" then
-			self.TEAM_KILLS_TO_WIN = 50
-		elseif GetMapName() == "temple_quartet" then
-			self.TEAM_KILLS_TO_WIN = 50
-		else
-			self.TEAM_KILLS_TO_WIN = 30
-		end
-		--print( "Kills to win = " .. tostring(self.TEAM_KILLS_TO_WIN) )
+		nCOUNTDOWNTIMER = 601
+		if BUTTINGS.ALT_TIME_LIMIT then nCOUNTDOWNTIMER = BUTTINGS.ALT_TIME_LIMIT * 60 + 1 end
+		self.TEAM_KILLS_TO_WIN = BUTTINGS.ALT_KILL_LIMIT or 30
+		print( "Kills to win = " .. tostring(self.TEAM_KILLS_TO_WIN) )
 
 		CustomNetTables:SetTableValue( "game_state", "victory_condition", { kills_to_win = self.TEAM_KILLS_TO_WIN } );
 
@@ -253,23 +235,6 @@ function COverthrowGameMode:OnEntityKilled( event )
 	if killedUnit:IsRealHero() then
 		self.allSpawned = true
 		--print("Hero has been killed")
-		--Add extra time if killed by Necro Ult
-		if hero:IsRealHero() == true then
-			if event.entindex_inflictor ~= nil then
-				local inflictor_index = event.entindex_inflictor
-				if inflictor_index ~= nil then
-					local ability = EntIndexToHScript( event.entindex_inflictor )
-					if ability ~= nil then
-						if ability:GetAbilityName() ~= nil then
-							if ability:GetAbilityName() == "necrolyte_reapers_scythe" then
-								print("Killed by Necro Ult")
-								extraTime = 20
-							end
-						end
-					end
-				end
-			end
-		end
 		if hero:IsRealHero() and heroTeam ~= killedTeam then
 			--print("Granting killer xp")
 			if killedUnit:GetTeam() == self.leadingTeam and self.isGameTied == false then
