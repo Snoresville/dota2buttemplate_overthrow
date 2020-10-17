@@ -5,6 +5,7 @@ This template is derived from Schokokek's template, meaning that most of its fun
 Due to the port, this template may be highly unstable. Please contact Snoresville#2486 via Discord with details of any errors.
 
 **Differences between this and the original**
+
 Kill limit and time limit are no longer alternate winning conditions in the Overthrow version of the template.
 
 # Original Templates
