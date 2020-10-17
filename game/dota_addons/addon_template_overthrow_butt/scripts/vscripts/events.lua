@@ -17,6 +17,7 @@ ListenToGameEvent("entity_killed", function(keys)
 
 	if (killedUnit and killedUnit:IsRealHero()) then
 		-- when a hero dies
+		killedUnit:SetTimeUntilRespawn( 5 )
 		EmitGlobalSound("tacobell")
 	end
 
@@ -137,6 +138,10 @@ function COverthrowGameMode:OnGameRulesStateChange()
 		nCOUNTDOWNTIMER = 601
 		if BUTTINGS.ALT_TIME_LIMIT then nCOUNTDOWNTIMER = BUTTINGS.ALT_TIME_LIMIT * 60 + 1 end
 		self.TEAM_KILLS_TO_WIN = BUTTINGS.ALT_KILL_LIMIT or 30
+		
+		if nCOUNTDOWNTIMER < 1 then nCOUNTDOWNTIMER = 1 end
+		if self.TEAM_KILLS_TO_WIN < 1 then self.TEAM_KILLS_TO_WIN = 10 end
+		
 		print( "Kills to win = " .. tostring(self.TEAM_KILLS_TO_WIN) )
 
 		CustomNetTables:SetTableValue( "game_state", "victory_condition", { kills_to_win = self.TEAM_KILLS_TO_WIN } );
@@ -263,6 +268,7 @@ function COverthrowGameMode:OnEntityKilled( event )
 				end
 			end
 		end
+		--[[
 		if killedUnit:GetRespawnTime() > 10 then
 			--print("Hero has long respawn time")
 			if killedUnit:IsReincarnating() == true then
@@ -274,6 +280,7 @@ function COverthrowGameMode:OnEntityKilled( event )
 		else
 			COverthrowGameMode:SetRespawnTime( killedTeam, killedUnit, extraTime )
 		end
+		--]]
 	end
 end
 

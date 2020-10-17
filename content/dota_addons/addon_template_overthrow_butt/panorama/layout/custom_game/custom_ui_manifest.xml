@@ -12,6 +12,7 @@
 	
 		GameUI.SetDefaultUIEnabled( DotaDefaultUIElement_t.DOTA_DEFAULT_UI_TOP_TIMEOFDAY, false );
 		GameUI.SetDefaultUIEnabled( DotaDefaultUIElement_t.DOTA_DEFAULT_UI_TOP_HEROES, false );
+		GameUI.SetDefaultUIEnabled( DotaDefaultUIElement_t.DOTA_DEFAULT_UI_TOP_BAR_BACKGROUND, false );
 		GameUI.SetDefaultUIEnabled( DotaDefaultUIElement_t.DOTA_DEFAULT_UI_FLYOUT_SCOREBOARD, false );
 
 		GameUI.SetDefaultUIEnabled( DotaDefaultUIElement_t.DOTA_DEFAULT_UI_ENDGAME, false );
@@ -47,6 +48,11 @@
 				reason: 80,
 				message: data.message});
 		});
+		
+		var hud = $.GetContextPanel().GetParent().GetParent();
+		hud.FindChildTraverse("PreGame").FindChildTraverse("Header").style.visibility = "collapse";
+		hud.FindChildTraverse("PreGame").FindChildTraverse("BottomPanelsContainer").FindChildTraverse("PreMinimapContainer").style.visibility = "collapse";
+		
 	</script>
 		
 	<Panel>
