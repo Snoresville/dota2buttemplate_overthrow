@@ -27,7 +27,7 @@ require("internal/talents")
 require("internal/thinker")
 require("internal/xp_modifier")
 
-softRequire("events")
+--softRequire("events") Already required by the original game mode
 softRequire("filters")
 softRequire("settings_butt")
 softRequire("settings_misc")
