@@ -9,4 +9,5 @@ Kill limit and time limit are no longer alternate winning conditions in the Over
 
 # Original Templates
 https://github.com/Jochnickel/addon_template_butt - Schokokeks' original version
+
 https://github.com/BOTRaiquia/dota2buttemplate_fixed - Raiquia's improved version
