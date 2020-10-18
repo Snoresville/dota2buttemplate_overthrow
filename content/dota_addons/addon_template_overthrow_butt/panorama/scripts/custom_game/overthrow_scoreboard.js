@@ -48,9 +48,13 @@ function HideTimer( data )
 function UpdateKillsToWin()
 {
 	var victory_condition = CustomNetTables.GetTableValue( "game_state", "victory_condition" );
-	if ( victory_condition )
+	if ( victory_condition["kills_to_win"] > 0 )
 	{
 		$("#VictoryPoints").text = victory_condition.kills_to_win;
+	}
+	else
+	{
+		$("#VictoryPoints").text = "--";
 	}
 }
 
@@ -65,11 +69,10 @@ function OnGameStateChanged( table, key, data )
 	// We use a nettable to communicate victory conditions to make sure we get the value regardless of timing.
 	UpdateKillsToWin();
 	CustomNetTables.SubscribeNetTableListener( "game_state", OnGameStateChanged );
-
+	
     GameEvents.Subscribe( "countdown", UpdateTimer );
     GameEvents.Subscribe( "show_timer", ShowTimer );
     GameEvents.Subscribe( "timer_alert", AlertTimer );
     GameEvents.Subscribe( "overtime_alert", HideTimer );
 	//UpdateTimer();
 })();
-

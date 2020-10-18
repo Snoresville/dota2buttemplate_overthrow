@@ -432,7 +432,7 @@ function COverthrowGameMode:OnThink()
 		if nCOUNTDOWNTIMER <= 0 then
 			--Check to see if there's a tie
 			self.countdownEnabled = false
-			if self.isGameTied == false then
+			if self.isGameTied == false or BUTTINGS.NO_KILL_LIMIT == 1 then
 				GameRules:SetCustomVictoryMessage( self.m_VictoryMessages[self.leadingTeam] )
 				COverthrowGameMode:EndGame( self.leadingTeam )
 			else

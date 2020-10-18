@@ -146,6 +146,9 @@ function COverthrowGameMode:OnGameRulesStateChange()
 		if nCOUNTDOWNTIMER < 1 then nCOUNTDOWNTIMER = 1 end
 		if self.TEAM_KILLS_TO_WIN < 1 then self.TEAM_KILLS_TO_WIN = 10 end
 		
+		-- To be displayed properly on the top scoreboard that there is no kill limit
+		if BUTTINGS.NO_KILL_LIMIT == 1 then self.TEAM_KILLS_TO_WIN = -1 end 
+		
 		print( "Kills to win = " .. tostring(self.TEAM_KILLS_TO_WIN) )
 
 		CustomNetTables:SetTableValue( "game_state", "victory_condition", { kills_to_win = self.TEAM_KILLS_TO_WIN } );
@@ -216,7 +219,13 @@ function COverthrowGameMode:OnTeamKillCredit( event )
 		close_to_victory = 0,
 		very_close_to_victory = 0,
 	}
-
+	
+	-- Prevents game victories through kill limits
+	if BUTTINGS.NO_KILL_LIMIT == 1 then
+		CustomGameEventManager:Send_ServerToAllClients( "kill_event", broadcast_kill_event )
+		return nil
+	end
+	
 	if nKillsRemaining <= 0 then
 		GameRules:SetCustomVictoryMessage( self.m_VictoryMessages[nTeamID] )
 		GameRules:SetGameWinner( nTeamID )
