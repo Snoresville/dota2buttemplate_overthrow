@@ -30,7 +30,7 @@
 			</Panel>
 			<Panel id="TeamsContainer" />
 			<Button id="CloseButton" onactivate="Game.FinishGame();">
-				<Label text="#CustomEndScreenClose" />
+				<Label id="CloseButtonText" text="#CustomEndScreenClose" />
 			</Button>
 		</Panel>
 	</Panel>

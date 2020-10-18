@@ -480,3 +480,23 @@
 	width: 70px;
 	text-align: center;
 }
+
+#CloseButton
+{
+	height: 25px;
+	width: 175px;
+	border: 1px solid #666666;
+	
+	horizontal-align: right;
+	
+	background-color: BACKGROUND_COLOR;
+	
+	margin-top: 50px;
+	margin-right: 20px;
+}
+
+#CloseButtonText
+{
+	horizontal-align: center;
+	vertical-align: center;
+}
