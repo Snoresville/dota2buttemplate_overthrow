@@ -48,7 +48,7 @@ function OnKillEvent( event )
 function UpdateRecentScore()
 {
 //	$.Msg( "UpdateRecentScore" );
-	var TIME_TO_SHOW_RECENT_SCORE_DS = 10; // 2s
+	var TIME_TO_SHOW_RECENT_SCORE_DS = 4; // 2s
 	var teamPanel = $.GetContextPanel();
 
 	var curTimeDS = Game.GetGameTime() * 10;
