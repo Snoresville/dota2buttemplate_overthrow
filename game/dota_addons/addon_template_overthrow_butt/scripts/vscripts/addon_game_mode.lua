@@ -431,12 +431,13 @@ function COverthrowGameMode:OnThink()
 		end
 		if nCOUNTDOWNTIMER <= 0 then
 			--Check to see if there's a tie
+			self.countdownEnabled = false
 			if self.isGameTied == false then
 				GameRules:SetCustomVictoryMessage( self.m_VictoryMessages[self.leadingTeam] )
 				COverthrowGameMode:EndGame( self.leadingTeam )
-				self.countdownEnabled = false
 			else
-				self.TEAM_KILLS_TO_WIN = self.leadingTeamScore + 1
+				self.TEAM_KILLS_TO_WIN = self.leadingTeamScore + BUTTINGS.OVERTIME_KILL_INCREASE or 1;
+				print("Kill limit shifted to " .. self.TEAM_KILLS_TO_WIN .. " kills")
 				local broadcast_killcount = 
 				{
 					killcount = self.TEAM_KILLS_TO_WIN

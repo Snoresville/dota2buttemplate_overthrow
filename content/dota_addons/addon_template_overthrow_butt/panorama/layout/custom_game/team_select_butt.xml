@@ -147,6 +147,12 @@
 																	 maxchars="5"/>
 												<Label text="Minutes" class="TextEntryLabel"/>
 										</Panel>
+										<Panel class="SettingsItem TextEntryFrame">
+												<TextEntry onfocus="onfocus('OVERTIME_KILL_INCREASE')" oninputsubmit="onPanelChange('OVERTIME_KILL_INCREASE')"
+																	 onblur="onPanelChange('OVERTIME_KILL_INCREASE')" id="OVERTIME_KILL_INCREASE" class="SettingsItem"
+																	 maxchars="5"/>
+												<Label text="Overtime Kill Increase" class="TextEntryLabel"/>
+										</Panel>
 								</Panel>
 								<Panel class="SettingsGroup w-31">
 										<ToggleButton id="BUYBACK_RULES" class="SettingsGroupTitle" text="Alternative Buyback Rules"
