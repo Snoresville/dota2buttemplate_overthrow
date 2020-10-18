@@ -28,33 +28,6 @@
 			<Panel id="GoldContainer" class="ScoreCol_Gold ScoreboardPanel">
 				<Label id="PlayerGoldAmount" text="999" />
 			</Panel>
-			<Panel id="DamageContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="HealingContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="LHContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="GPMContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="EPMContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="TotalXPContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="DamageTakenContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="GetGoldSpentOnItemsContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
-			<Panel id="RunePickupsContainer" class="ScoreCol_Gold ScoreboardPanel">
-				<Label id="PlayerGoldAmount" text="999" />
-			</Panel>
 		</Panel>
 	</Panel>
 </root>

@@ -27,15 +27,6 @@
 				<Label class="LegendPanel ScoreCol_Assists" text="#custom_end_screen_legend_assists" />
 				<Label class="LegendPanel ScoreCol_Items" text="#custom_end_screen_legend_items" />
 				<Label class="LegendPanel ScoreCol_Gold" text="#custom_end_screen_legend_gold" />
-				<Label class="LegendPanel ScoreCol_Gold" text="Damage" />
-				<Label class="LegendPanel ScoreCol_Gold" text="Healing" />
-				<Label class="LegendPanel ScoreCol_Gold" text="LH (Streak)" />
-				<Label class="LegendPanel ScoreCol_Gold" text="GPM" />
-				<Label class="LegendPanel ScoreCol_Gold" text="EPM" />
-				<Label class="LegendPanel ScoreCol_Gold" text="Total EXP" />
-				<Label class="LegendPanel ScoreCol_Gold" text="Damage Taken" />
-				<Label class="LegendPanel ScoreCol_Gold" text="Gold spent on Items" />
-				<Label class="LegendPanel ScoreCol_Gold" text="Rune Pickups" />
 			</Panel>
 			<Panel id="TeamsContainer" />
 			<Button id="CloseButton" onactivate="Game.FinishGame();">
