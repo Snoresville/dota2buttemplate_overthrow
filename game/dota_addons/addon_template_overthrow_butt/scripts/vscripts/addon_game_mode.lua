@@ -35,11 +35,9 @@ softRequire("startitems")
 softRequire("thinker")
 
 function Spawn()
+	print("spawn function")
 	FireGameEvent("addon_game_mode_spawn",nil)
 	local gmE = GameRules:GetGameModeEntity()
-
-	gmE:SetUseDefaultDOTARuneSpawnLogic(true)
-	gmE:SetTowerBackdoorProtectionEnabled(true)
 
 	FireGameEvent("created_game_mode_entity",{gameModeEntity = gmE})
 end
@@ -126,6 +124,8 @@ function Precache( context )
 end
 
 function Activate()
+	print("activate function")
+
 	-- Create our game mode and initialize it
 	COverthrowGameMode:InitGameMode()
 	-- Custom Spawn
