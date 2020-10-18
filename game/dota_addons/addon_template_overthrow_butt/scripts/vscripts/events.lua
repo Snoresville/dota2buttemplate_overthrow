@@ -21,7 +21,7 @@ ListenToGameEvent("entity_killed", function(keys)
 		-- Example settings
 		-- Will set respawn time to 5 seconds and do the taco bell noise
 		
-		--killedUnit:SetTimeUntilRespawn( 5 )
+		--PlayerResource:GetSelectedHeroEntity(killedUnit:GetPlayerOwnerID()):SetTimeUntilRespawn( 5 )  -- Very long code just to fix meepo respawn time
 		--EmitGlobalSound("tacobell")
 	end
 
