@@ -17,8 +17,12 @@ ListenToGameEvent("entity_killed", function(keys)
 
 	if (killedUnit and killedUnit:IsRealHero()) then
 		-- when a hero dies
-		killedUnit:SetTimeUntilRespawn( 5 )
-		EmitGlobalSound("tacobell")
+		
+		-- Example settings
+		-- Will set respawn time to 5 seconds and do the taco bell noise
+		
+		--killedUnit:SetTimeUntilRespawn( 5 )
+		--EmitGlobalSound("tacobell")
 	end
 
 end, nil)
