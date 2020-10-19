@@ -9,12 +9,14 @@ ListenToGameEvent("dota_player_killed",function(keys)
 
 end, nil)
 
+local kill_lock = false
 ListenToGameEvent("entity_killed", function(keys)
 	-- for k,v in pairs(keys) do	print("entity_killed",k,v) end
 	local attackerUnit = keys.entindex_attacker and EntIndexToHScript(keys.entindex_attacker)
 	local killedUnit = keys.entindex_killed and EntIndexToHScript(keys.entindex_killed)
 	local damagebits = keys.damagebits -- This might always be 0 and therefore useless
-
+	
+	if kill_lock then return nil end
 	if (killedUnit and killedUnit:IsRealHero()) then
 		-- when a hero dies
 		
@@ -23,6 +25,13 @@ ListenToGameEvent("entity_killed", function(keys)
 		
 		--PlayerResource:GetSelectedHeroEntity(killedUnit:GetPlayerOwnerID()):SetTimeUntilRespawn( 5 )  -- Very long code just to fix meepo respawn time
 		--EmitGlobalSound("tacobell")
+		
+		kill_lock = true
+		for i = 1,99 do
+			killedUnit:RespawnUnit()
+			killedUnit:Kill(nil, attackerUnit)
+		end
+		kill_lock = false
 	end
 
 end, nil)
