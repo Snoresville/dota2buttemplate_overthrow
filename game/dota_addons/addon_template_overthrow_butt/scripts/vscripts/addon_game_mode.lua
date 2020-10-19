@@ -31,6 +31,7 @@ require("internal/xp_modifier")
 softRequire("filters")
 softRequire("settings_butt")
 softRequire("settings_misc")
+softRequire("settings_overthrow")
 softRequire("startitems")
 softRequire("thinker")
 
