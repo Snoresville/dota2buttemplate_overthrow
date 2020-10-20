@@ -5,7 +5,7 @@ BUTTINGS = {
 
 	GAME_MODE = "AP",                   -- "AR" "AP" All Random/ All Pick
 	ALLOW_SAME_HERO_SELECTION = 0,      -- 0 = everyone must pick a different hero, 1 = can pick same
-	HERO_BANNING = 1,                   -- THIS IS BROKEN, I DON'T KNOW HOW TO FIX IT //0 = no banning, 1 = banning phase
+	HERO_BANNING = 0,                   -- THIS IS BROKEN, I DON'T KNOW HOW TO FIX IT //0 = no banning, 1 = banning phase
 	USE_BOTS = 0, -- TODO
 	MAX_LEVEL = MAX_LEVEL,              -- (default = 30) the max level a hero can reach
 
@@ -26,7 +26,7 @@ BUTTINGS = {
 	NO_UPHILL_MISS = 0,                 -- 0 = normal, 1 = 0% uphill muss chance
 	OUTPOST_SHOP = 0,                   -- 0 = normal, 1 = jungle shops
 	SIDE_SHOP = 0,                      -- 0 = normal, 1 = bring back sideshops
-	FREE_COURIER = 0,                   -- 0 = vanilla couriers, 1 = custom couriers
+	FREE_COURIER = 1,                   -- 0 = vanilla couriers, 1 = custom couriers
 	XP_PER_MINUTE = 0,                  -- (normal dota = 0) everyone gets passive experience (like the passive gold)
 	COMEBACK_TIMER = 30,                -- timer (minutes) to start comeback XP / gold 
 	COMEBACK_GPM = 60,                  -- passive gold for the poorest team
