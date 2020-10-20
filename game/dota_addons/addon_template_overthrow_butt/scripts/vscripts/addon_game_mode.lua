@@ -282,7 +282,7 @@ function COverthrowGameMode:InitGameMode()
 		local campname = "camp"..i.."_path_customspawn"
 		spawncamps[campname] =
 		{
-			NumberToSpawn = RandomInt(3,5),
+			NumberToSpawn = RandomInt(NEUTRAL_CAMP_MIN_UNIT_COUNT, NEUTRAL_CAMP_MAX_UNIT_COUNT),
 			WaypointName = "camp"..i.."_path_wp1"
 		}
 	end

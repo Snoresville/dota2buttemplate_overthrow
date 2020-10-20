@@ -5,7 +5,7 @@ BUTTINGS = {
 
 	GAME_MODE = "AP",                   -- "AR" "AP" All Random/ All Pick
 	ALLOW_SAME_HERO_SELECTION = 0,      -- 0 = everyone must pick a different hero, 1 = can pick same
-	HERO_BANNING = 0,                   -- THIS IS BROKEN, I DON'T KNOW HOW TO FIX IT //0 = no banning, 1 = banning phase
+	HERO_BANNING = 0,                   -- 0 = no banning, 1 = banning phase
 	USE_BOTS = 0, -- TODO
 	MAX_LEVEL = MAX_LEVEL,              -- (default = 30) the max level a hero can reach
 
