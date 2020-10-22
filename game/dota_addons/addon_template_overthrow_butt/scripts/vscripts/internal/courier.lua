@@ -13,6 +13,7 @@ LinkLuaModifier("modifier_passive_gold", "internal/modifier_passive_gold.lua", L
 
 ListenToGameEvent("npc_first_spawn",function(event)
 	local hero = EntIndexToHScript(event.entindex)
+	if (not hero:IsRealHero()) then return end
 	hero:AddNewModifier(hero,nil,"modifier_passive_gold",{ gold_per_tick = 1, gold_tick_time = (60/BUTTINGS.GOLD_PER_MINUTE) })
 end, self)
 
