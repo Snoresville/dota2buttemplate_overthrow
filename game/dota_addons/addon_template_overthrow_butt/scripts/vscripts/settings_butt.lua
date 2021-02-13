@@ -6,7 +6,7 @@ BUTTINGS = {
 	GAME_MODE = "AP",                   -- "AR" "AP" All Random/ All Pick
 	ALLOW_SAME_HERO_SELECTION = 0,      -- 0 = everyone must pick a different hero, 1 = can pick same
 	HERO_BANNING = 0,                   -- 0 = no banning, 1 = banning phase
-	USE_BOTS = 0, -- TODO
+	USE_BOTS = 0, 						-- Adds bots to the game
 	MAX_LEVEL = MAX_LEVEL,              -- (default = 30) the max level a hero can reach
 
 	UNIVERSAL_SHOP_MODE = 1,            -- 0 = normal, 1 = you can buy every item in every shop (secret/side/base).
@@ -37,8 +37,8 @@ BUTTINGS = {
 	TIME_UNTIL_AGH_SHARD = 1, 			-- Time until aghanim shard in minutes
 	FREE_AGH_SHARD = 0, 				-- Whether the shard is free or not
 
-	BONUS_COURIER_SPEED = 0,			-- % bonus movespeed for the courier
-	COURIER_INVULNERABLE = 0,			-- Whether the courier can be killed or not
+	BONUS_COURIER_SPEED = 100,			-- % bonus movespeed for the courier
+	COURIER_INVULNERABLE = 1,			-- Whether the courier can be killed or not
 
 	ALT_WINNING = 0,                    -- 0 = normal, 1 = use these alternative winning conditions
 	ALT_KILL_LIMIT = 30,               -- Kills for alternative winnning
@@ -86,5 +86,7 @@ function BUTTINGS.ALTERNATIVE_XP_TABLE()	-- xp values if MAX_LEVEL is different 
 	} for i = #ALTERNATIVE_XP_TABLE + 1, BUTTINGS.MAX_LEVEL do ALTERNATIVE_XP_TABLE[i] = ALTERNATIVE_XP_TABLE[i - 1] + (300 * ( i - 15 )) end
 	return ALTERNATIVE_XP_TABLE
 end
+
+if GameRules:IsCheatMode() then BUTTINGS.USE_BOTS = 1 end
 
 BUTTINGS_DEFAULT = table.copy(BUTTINGS)

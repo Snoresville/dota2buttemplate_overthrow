@@ -75,9 +75,9 @@ ListenToGameEvent("game_rules_state_change", function()
 				local playerID = ID - 1
 				if PlayerResource:IsFakeClient(playerID) then
 					Timers:CreateTimer(
-						1, function() 
-							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 1 end
-							
+						0.1, function() 
+							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 0.1 end
+
 							local hero = PlayerResource:GetSelectedHeroEntity(playerID)
 							hero:AddNewModifier(hero, nil, "modifier_bot", {})
 						end

@@ -25,11 +25,9 @@ end
 function modifier_bot:OnIntervalThink()
     if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
 
-    local search = self:CanSeeEnemies()
+    if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
 
-    if self.bot:GetAggroTarget() then                           -- If the bot is hunting its target
-        if search and search[1] == self.bot:GetAggroTarget() then return end
-    end
+    local search = self:CanSeeEnemies()                         -- 
 
     if search then                                              -- Bot can see at least one enemy
         ExecuteOrderFromTable({
@@ -58,4 +56,30 @@ function modifier_bot:CanSeeEnemies()
         FIND_CLOSEST, false)
 
     return #search > 0 and search or false 
+end
+
+function modifier_bot:SpendAbilityPoints()
+    local basic = {self.bot:GetAbilityByIndex(0), self.bot:GetAbilityByIndex(1), self.bot:GetAbilityByIndex(2)}
+    local ultimate = self.bot:GetAbilityByIndex(5)
+    local level = self.bot:GetLevel()
+
+    -- Upgrade Ultimate
+    if level % 6 == 0 then
+        self.bot:UpgradeAbility(ultimate)
+    end
+
+    -- Upgrade Talent
+    if level % 5 == 0 and level >= 10 then
+        local talent_bar = math.floor(level / 5)
+        local talents = {self.bot:GetAbilityByIndex(5 + 2 * talent_bar), self.bot:GetAbilityByIndex(6 + 2 * talent_bar)}
+        self.bot:UpgradeAbility(talents[math.random(2)])
+    end
+
+    -- Upgrade Ability
+    while self.bot:GetAbilityPoints() > 0 do
+        local basic_chosen = basic[math.random(3)]
+        if basic_chosen:GetLevel() * 2 < level then -- Prevents level 1 abilites from getting levelled up at level 2 and etc.
+            self.bot:UpgradeAbility(basic_chosen)
+        end
+    end
 end
