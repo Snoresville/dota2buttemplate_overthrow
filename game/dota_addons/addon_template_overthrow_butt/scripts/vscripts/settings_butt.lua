@@ -14,7 +14,7 @@ BUTTINGS = {
 	COOLDOWN_PERCENTAGE = 100,          -- (default = 100) factor for all cooldowns
 	GOLD_GAIN_PERCENTAGE = 100,         -- (default = 100) factor for gold income
 	GOLD_PER_MINUTE = 95,               -- (default =  90) passive gold
-	RESPAWN_TIME_PERCENTAGE = 100,      -- (default = 100) factor for respawn time
+	RESPAWN_TIME_PERCENTAGE = 20,      	-- (default = 100) factor for respawn time
 	XP_GAIN_PERCENTAGE = 100,           -- (default = 100) factor for xp income
 
 	TOMBSTONE = 0,                      -- 0 = normal, 1 = You spawn a tombstone when you die. Teammates can ressurect you by channeling it.
@@ -49,8 +49,6 @@ BUTTINGS = {
 	BUYBACK_RULES = 0,                  -- 0 = normal, 1 = use buyback restrictions
 	BUYBACK_LIMIT = 1,                  -- Max amount of buybacks
 	BUYBACK_COOLDOWN = 600,             -- Cooldown for buyback
-
-	INCLUDE_BOTS = 0,		            -- Cooldown for buyback
 }
 
 function BUTTINGS.ALTERNATIVE_XP_TABLE()	-- xp values if MAX_LEVEL is different than 30

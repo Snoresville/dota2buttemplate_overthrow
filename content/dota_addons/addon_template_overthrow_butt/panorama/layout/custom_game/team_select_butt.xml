@@ -126,6 +126,8 @@
 												class="SettingsItem" maxchars="5" unit="min" />
 									<Label text="Time until Aghanim Shard" class="TextEntryLabel"/>
 								</Panel>
+								<ToggleButton id="USE_BOTS" class="SettingsItem" text="Use Bots (Cheats Mode only)"
+															onactivate="onPanelChange('USE_BOTS')"/>
 						</Panel>
 						<Panel class="SettingsGroup w-31">
 								<Label class="SettingsGroupTitle" text="Winning Conditions"/>

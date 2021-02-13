@@ -2,6 +2,7 @@ BUTTINGS = BUTTINGS or {MAX_LEVEL = MAX_LEVEL}
 
 require("internal/utils/butt_api")
 LinkLuaModifier("modifier_courier_speed", "internal/modifier_courier_speed.lua", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_bot", "internal/modifier_bot.lua", LUA_MODIFIER_MOTION_NONE)
 
 ListenToGameEvent("game_rules_state_change", function()
 	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_HERO_SELECTION) then
@@ -41,6 +42,17 @@ ListenToGameEvent("game_rules_state_change", function()
 			end
 		end
 		GameRules:GetGameModeEntity():SetFreeCourierModeEnabled(true)
+
+		-- Added delay to get the bots in
+		if 1 == BUTTINGS.USE_BOTS then
+			GameRules:SetStrategyTime( 10.0 )
+		end
+	end
+
+	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_STRATEGY_TIME) then
+		if 1 == BUTTINGS.USE_BOTS then
+			SendToConsole("dota_bot_populate")
+		end
 	end
 
 	-- Remove the shard from the shop so I can re-add it with the timer later
@@ -57,6 +69,22 @@ ListenToGameEvent("game_rules_state_change", function()
 	end
 
 	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_GAME_IN_PROGRESS) then
+		if IsServer() and 1 == BUTTINGS.USE_BOTS then
+			for ID = 1, PlayerResource:GetPlayerCount() do
+				-- If the player is actually a bot
+				local playerID = ID - 1
+				if PlayerResource:IsFakeClient(playerID) then
+					Timers:CreateTimer(
+						1, function() 
+							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 1 end
+							
+							local hero = PlayerResource:GetSelectedHeroEntity(playerID)
+							hero:AddNewModifier(hero, nil, "modifier_bot", {})
+						end
+					)
+				end
+			end
+		end
 		Timers:CreateTimer({
 			endTime = BUTTINGS.TIME_UNTIL_AGH_SHARD*60,
 			callback = function()
