@@ -34,7 +34,7 @@ BUTTINGS = {
 	SHARED_GOLD_PERCENTAGE = 0,         -- all gold (except passive) is shared with teammates
 	SHARED_XP_PERCENTAGE = 0,           -- all experience (except passive) is shared with teammates
 
-	TIME_UNTIL_AGH_SHARD = 20, 			-- Time until aghanim shard in minutes
+	TIME_UNTIL_AGH_SHARD = 1, 			-- Time until aghanim shard in minutes
 	FREE_AGH_SHARD = 0, 				-- Whether the shard is free or not
 
 	BONUS_COURIER_SPEED = 0,			-- % bonus movespeed for the courier
@@ -49,6 +49,8 @@ BUTTINGS = {
 	BUYBACK_RULES = 0,                  -- 0 = normal, 1 = use buyback restrictions
 	BUYBACK_LIMIT = 1,                  -- Max amount of buybacks
 	BUYBACK_COOLDOWN = 600,             -- Cooldown for buyback
+
+	INCLUDE_BOTS = 0,		            -- Cooldown for buyback
 }
 
 function BUTTINGS.ALTERNATIVE_XP_TABLE()	-- xp values if MAX_LEVEL is different than 30
