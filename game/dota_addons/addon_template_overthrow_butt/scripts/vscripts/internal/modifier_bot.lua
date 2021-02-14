@@ -200,7 +200,7 @@ function modifier_bot:GetCastableAbilities()
 		
 		-- Ability checkpoint
 		if ability == nil then goto continue_item end
-        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
+        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue_item end
 		for _,behaviour in pairs(self.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue_item end
 		end
