@@ -19,6 +19,11 @@ end
 function modifier_bot:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
+
+        local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
+        self.hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")
+        for k,v in pairs(self.hero_build) do print(k,v) end
+        
         self:StartIntervalThink(1)
     end
 end
@@ -49,6 +54,7 @@ function modifier_bot:TargetDecision(hTarget)
         abilityQueued = castableAbilities[math.random(#castableAbilities)]
     end
 
+    print(abilityQueued and ("A BOT IS CASTING: " .. abilityQueued:GetAbilityName()) or "")
     if abilityQueued and hTarget:IsAlive() then
         if HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then -- If it only targets friendlies
@@ -101,7 +107,6 @@ end
 modifier_bot.spell_filter_behavior = {
     DOTA_ABILITY_BEHAVIOR_PASSIVE,
     DOTA_ABILITY_BEHAVIOR_ATTACK,
-    DOTA_ABILITY_BEHAVIOR_HIDDEN,
     DOTA_ABILITY_BEHAVIOR_TOGGLE,
 }
 
@@ -118,6 +123,9 @@ modifier_bot.spell_filter_direct = {
     "rubick_hidden1",
     "rubick_hidden2",
     "rubick_hidden3",
+
+    -- Spectre
+    "spectre_reality",
 }
 
 function modifier_bot:GetCastableAbilities()
@@ -134,6 +142,7 @@ function modifier_bot:GetCastableAbilities()
 		-- Ability checkpoint
 		if ability == nil then goto continue end
         if ability:GetLevel() == 0 then goto continue end
+        if ability:IsHidden() then goto continue end
         if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
 		for _,behaviour in pairs(self.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end

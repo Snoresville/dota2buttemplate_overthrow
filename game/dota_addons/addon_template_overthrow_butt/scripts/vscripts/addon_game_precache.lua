@@ -15,6 +15,7 @@ soundprecache = {
     "soundevents/game_sounds_heroes/game_sounds_dazzle.vsndevts",
     "soundevents/game_sounds_heroes/game_sounds_doombringer.vsndevts",
     "soundevents/game_sounds_heroes/game_sounds_dragon_knight.vsndevts",
+    "soundevents/game_sounds_heroes/game_sounds_elder_titan.vsndevts",
     "soundevents/game_sounds_heroes/game_sounds_ember_spirit.vsndevts",
     "soundevents/game_sounds_heroes/game_sounds_enigma.vsndevts",
     "soundevents/game_sounds_heroes/game_sounds_faceless_void.vsndevts",
