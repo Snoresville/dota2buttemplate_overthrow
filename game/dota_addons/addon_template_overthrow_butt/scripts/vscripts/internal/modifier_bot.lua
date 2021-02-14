@@ -3,8 +3,8 @@ modifier_bot = modifier_bot or class({})
 
 function modifier_bot:GetTexture() return "rattletrap_power_cogs" end -- get the icon from a different ability
 
-function modifier_bot:IsPermanent() return not self:GetParent():IsIllusion() end
-function modifier_bot:RemoveOnDeath() return self:GetParent():IsIllusion() end
+function modifier_bot:IsPermanent() return true end
+function modifier_bot:RemoveOnDeath() return false end
 function modifier_bot:IsHidden() return false end 	-- we can hide the modifier
 function modifier_bot:IsDebuff() return false end 	-- make it red or green
 function modifier_bot:AllowIllusionDuplicate() return true end
@@ -19,10 +19,7 @@ end
 function modifier_bot:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
-
-        local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
-        self.hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")
-        for k,v in pairs(self.hero_build) do print(k,v) end
+        --self:CreateItemProgression()
         
         self:StartIntervalThink(1)
     end
@@ -32,6 +29,8 @@ function modifier_bot:OnIntervalThink()
     if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
 
     if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
+
+    if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
 
     -- Search before moving
     local search = self:CanSeeEnemies()                         
@@ -153,6 +152,7 @@ function modifier_bot:GetCastableAbilities()
         if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
         if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
         if not ability:IsActivated() then goto continue end
+        if ability:GetCooldown(-1) == 0 then goto continue end
         if ability.RequiresCharges and ability:GetCurrentCharges() == 0 then goto continue end
 		
 		-- Add that ability after checkpoint
@@ -173,7 +173,7 @@ function modifier_bot:CanSeeEnemies()
         nil, 
         FIND_UNITS_EVERYWHERE, 
         DOTA_UNIT_TARGET_TEAM_ENEMY, 
-        DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
+        DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
         DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
         FIND_CLOSEST, false)
 
@@ -223,4 +223,65 @@ function modifier_bot:SpendAbilityPoints()
             end
         end
     end
+end
+
+modifier_bot.remove_core = {
+    ["item_magic_wand"] = true,
+}
+
+modifier_bot.item_restrict_suggestion = {
+    ["item_ring_of_aquila"] = true,
+    ["item_ultimate_scepter"] = true,
+    ["item_ultimate_scepter_2"] = true,
+    ["item_aghanims_shard"] = true,
+}
+
+-- This is broken
+-- Can't do shit without having to import EVERY item build and fixing it up myself
+
+function modifier_bot:CreateItemProgression()
+    local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
+    local hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")["Items"]
+    --for k,v in pairs(hero_build) do print(k,v) end
+
+    -- Always required according to dota default build
+    local full_slots = {}
+
+    for k,v in pairs(hero_build) do
+        print(k,v)
+        for i,j in pairs(v) do
+            print(i, j)
+        end
+    end
+
+    for _, item_name in pairs(hero_build["#DOTA_Item_Build_Late_Items"]) do
+        if not self.remove_core[item_name] then
+            table.insert(full_slots, item_name)
+        end
+    end
+
+    -- Can randomise
+    local situational = {}
+    for _, item_name in pairs(hero_build["#DOTA_Item_Build_Other_Items"]) do
+        if not self.item_restrict_suggestion[item_name] then
+            table.insert(situational, item_name)
+        end
+    end
+
+    -- while #full_slots < 6 do
+    --     local suggestion_index = math.random(#situational)
+    --     local suggestion = situational[suggestion_index]
+    --     if not self.item_restrict_suggestion[suggestion] then
+    --         table.remove(situational, suggestion_index)
+    --         table.insert(full_slots, suggestion)
+    --     end
+    -- end
+
+    -- -- Aghs for good luck
+    -- table.insert(full_slots, "item_ultimate_scepter_2")
+    -- table.insert(full_slots, "item_aghanims_shard")
+
+    -- self.item_progression = GetAllBuildComponents(full_slots)
+    -- print(self.bot:GetUnitName())
+    -- for k,v in pairs(self.item_progression) do print(k,v) end
 end

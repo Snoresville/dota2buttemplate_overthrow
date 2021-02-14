@@ -381,3 +381,48 @@ function InitialiseRandom()
     end
     --math.randomseed()
 end
+
+-- below is redundant
+
+_G.item_kv = LoadKeyValues("scripts/npc/items.txt")
+function GetAllBuildComponents(hero_build)
+	local build_components = {}
+	for _, item in pairs(hero_build) do
+		print(item)
+		-- local components = GetAllItemComponents(item)
+		-- for _, component in pairs(components) do
+		-- 	table.insert(build_components, component)
+		-- end
+	end
+	return build_components
+end
+
+function GetAllItemComponents(item)
+	local recipe_name = string.gsub(item, "item_", "item_recipe_")
+	print(item)
+	if item_kv[recipe] then
+		local recipe = item_kv[recipe]
+		local return_components = {}
+		local subcomponents = string_split(recipe["ItemRequirements"]["01"], ";")
+		for i = 1, #subcomponents do
+			subcomponents[i] = string_split(subcomponents[i], "*")[1]
+		end
+		table.insert(subcomponents, recipe_name)
+
+		for _, subcomponent in pairs(subcomponents) do
+			local subsubcomponents = GetAllItemComponents(subcomponent)
+			for _, subsubcomponent in pairs(subsubcomponents) do
+				table.insert(return_components, subsubcomponent)
+			end
+		end
+
+		return return_components
+	else
+		local itemCost = item_kv[item]["ItemCost"]
+		if itemCost > 0 then 
+			return {item}
+		else
+			return {} 
+		end
+	end
+end
