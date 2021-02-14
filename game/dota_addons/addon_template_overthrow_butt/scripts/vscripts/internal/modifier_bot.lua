@@ -19,6 +19,7 @@ end
 function modifier_bot:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
+        self.bot:SetControllableByPlayer(self.bot:GetPlayerOwnerID(), true)
         self:CreateItemProgression()
         
         self:StartIntervalThink(1)
@@ -115,6 +116,9 @@ modifier_bot.spell_filter_direct = {
     -- Misc
     "generic_hidden",
 
+    -- Lifestealer
+    "life_stealer_infest",
+
     -- Pudge
     "pudge_rot",
     
@@ -125,8 +129,14 @@ modifier_bot.spell_filter_direct = {
     "rubick_hidden2",
     "rubick_hidden3",
 
+    -- Shadow Demon
+    "shadow_demon_shadow_poison_release",
+
     -- Spectre
     "spectre_reality",
+
+    -- Templar
+    "templar_assassin_self_trap",
 }
 
 function modifier_bot:GetCastableAbilities()
@@ -154,7 +164,6 @@ function modifier_bot:GetCastableAbilities()
         if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
         if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
         if not ability:IsActivated() then goto continue end
-        if ability:GetCooldown(-1) == 0 then goto continue end
         if ability.RequiresCharges and ability:GetCurrentCharges() == 0 then goto continue end
 		
 		-- Add that ability after checkpoint
@@ -167,7 +176,7 @@ function modifier_bot:GetCastableAbilities()
 
     for index = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
 		-- Ability in question
-		local ability = self.bot:GetAbilityByIndex(index)
+		local ability = self.bot:GetItemInSlot(index)
 		
 		-- Ability checkpoint
 		if ability == nil then goto continue_item end
@@ -258,13 +267,10 @@ function modifier_bot:ShopForItems()
     local target_item = self.item_progression[1]
 
     if ItemName_GetGoldCost(target_item) <= self.bot:GetGold() then
-        print(target_item)
-        print(ItemName_GetID(target_item))
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_PURCHASE_ITEM,
-            AbilityIndex = ItemName_GetID(target_item)
-        })
+        print(target_item, ItemName_GetID(target_item))
+        self.bot:AddItemByName(target_item)
+        self.bot:SpendGold(ItemName_GetGoldCost(target_item), DOTA_ModifyGold_PurchaseItem)
+        EmitSoundOnLocationWithCaster(self.bot:GetAbsOrigin(), "General.Buy", self.bot)
         table.remove(self.item_progression, 1)
     end
 end
