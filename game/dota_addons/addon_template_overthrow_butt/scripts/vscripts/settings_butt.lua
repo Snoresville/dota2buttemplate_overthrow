@@ -87,6 +87,10 @@ function BUTTINGS.ALTERNATIVE_XP_TABLE()	-- xp values if MAX_LEVEL is different 
 	return ALTERNATIVE_XP_TABLE
 end
 
-if GameRules:IsCheatMode() then BUTTINGS.USE_BOTS = 1 end
+if IsInToolsMode() then 
+	BUTTINGS.USE_BOTS = 1 
+	BUTTINGS.ALT_KILL_LIMIT = 100
+	BUTTINGS.ALT_TIME_LIMIT = 10
+end
 
 BUTTINGS_DEFAULT = table.copy(BUTTINGS)

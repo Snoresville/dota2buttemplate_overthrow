@@ -360,3 +360,11 @@ end
 function IsMonkeyKingClone(unit)
 	return unit:HasModifier("modifier_monkey_king_fur_army_soldier_hidden")
 end
+
+function HasBit(checker, value)
+    local checkVal = checker
+    if type(checkVal) == 'userdata' then
+        checkVal = tonumber(checker:ToHexString(), 16)
+    end
+    return bit.band( checkVal, tonumber(value)) == tonumber(value)
+end
