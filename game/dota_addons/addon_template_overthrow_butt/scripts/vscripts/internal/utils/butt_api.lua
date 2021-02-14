@@ -368,3 +368,16 @@ function HasBit(checker, value)
     end
     return bit.band( checkVal, tonumber(value)) == tonumber(value)
 end
+
+function InitialiseRandom()
+    print("[BUTT] System time is: "..GetSystemTime())
+
+    local newRandomSeed = math.random()
+
+    for i in string.gmatch(GetSystemTime(), "%d") do
+        newRandomSeed = newRandomSeed * (i + 1)
+        math.randomseed(newRandomSeed)
+        newRandomSeed = newRandomSeed + math.random()
+    end
+    --math.randomseed()
+end

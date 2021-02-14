@@ -3,10 +3,11 @@ modifier_bot = modifier_bot or class({})
 
 function modifier_bot:GetTexture() return "rattletrap_power_cogs" end -- get the icon from a different ability
 
-function modifier_bot:IsPermanent() return true end
-function modifier_bot:RemoveOnDeath() return false end
+function modifier_bot:IsPermanent() return not self:GetParent():IsIllusion() end
+function modifier_bot:RemoveOnDeath() return self:GetParent():IsIllusion() end
 function modifier_bot:IsHidden() return false end 	-- we can hide the modifier
 function modifier_bot:IsDebuff() return false end 	-- make it red or green
+function modifier_bot:AllowIllusionDuplicate() return true end
 
 function modifier_bot:GetAttributes()
 	return 0
@@ -48,11 +49,10 @@ function modifier_bot:TargetDecision(hTarget)
         abilityQueued = castableAbilities[math.random(#castableAbilities)]
     end
 
-    print(abilityQueued and abilityQueued:GetAbilityName() or "")
     if abilityQueued and hTarget:IsAlive() then
         if HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then -- If it only targets friendlies
-                local ally_search = self:GetNearestAlly()
+                local ally_search = self:GetRandomAlly()
                 if ally_search and self.bot:GetRangeToUnit(ally_search[1]) <= abilityQueued:GetCastRange(nil, nil) then
                     ExecuteOrderFromTable({
                         UnitIndex = self.bot:entindex(),
@@ -92,8 +92,8 @@ function modifier_bot:TargetDecision(hTarget)
     else
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_ATTACK_TARGET,
-            TargetIndex = hTarget:entindex()
+            OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
+            Position = hTarget:GetAbsOrigin()
         })
     end
 end
@@ -102,6 +102,7 @@ modifier_bot.spell_filter_behavior = {
     DOTA_ABILITY_BEHAVIOR_PASSIVE,
     DOTA_ABILITY_BEHAVIOR_ATTACK,
     DOTA_ABILITY_BEHAVIOR_HIDDEN,
+    DOTA_ABILITY_BEHAVIOR_TOGGLE,
 }
 
 modifier_bot.spell_filter_direct = {
@@ -121,7 +122,10 @@ modifier_bot.spell_filter_direct = {
 
 function modifier_bot:GetCastableAbilities()
     local abilities = {}
+
+    -- Base Case
     if self.bot:IsSilenced() then return abilities end
+    if self.bot:IsIllusion() then return abilities end
 
     for index = 0,15 do
 		-- Ability in question
@@ -130,6 +134,7 @@ function modifier_bot:GetCastableAbilities()
 		-- Ability checkpoint
 		if ability == nil then goto continue end
         if ability:GetLevel() == 0 then goto continue end
+        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
 		for _,behaviour in pairs(self.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end
 		end
@@ -139,6 +144,7 @@ function modifier_bot:GetCastableAbilities()
         if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
         if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
         if not ability:IsActivated() then goto continue end
+        if ability.RequiresCharges and ability:GetCurrentCharges() == 0 then goto continue end
 		
 		-- Add that ability after checkpoint
 		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
@@ -165,7 +171,7 @@ function modifier_bot:CanSeeEnemies()
     return #search > 0 and search or false 
 end
 
-function modifier_bot:GetNearestAlly()
+function modifier_bot:GetRandomAlly()
     local search = FindUnitsInRadius(
         self.bot:GetTeam(), 
         self.bot:GetAbsOrigin(), 
@@ -174,7 +180,7 @@ function modifier_bot:GetNearestAlly()
         DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
         DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
         DOTA_UNIT_TARGET_FLAG_NONE, 
-        FIND_CLOSEST, false)
+        FIND_ANY_ORDER, false)
 
     return #search > 0 and search or false 
 end

@@ -34,6 +34,7 @@ softRequire("settings_misc")
 softRequire("settings_overthrow")
 softRequire("startitems")
 softRequire("thinker")
+require("addon_game_precache")
 
 function Spawn()
 	print("spawn function")
@@ -77,6 +78,12 @@ require( "utility_functions" )
 function Precache( context )
 	FireGameEvent("addon_game_mode_precache",nil)
 	PrecacheResource("soundfile", "soundevents/custom_sounds.vsndevts", context)
+	PrecacheResource("soundfile_folder", "soundevents/game_sounds_heroes", context)
+	if soundprecache then
+		for i = 1, #soundprecache do
+			PrecacheResource("soundfile", soundprecache[i], context)
+		end
+	end
 	--[[
 		Precache things we know we'll use.  Possible file types include (but not limited to):
 			PrecacheResource( "model", "*.vmdl", context )
@@ -131,6 +138,8 @@ function Activate()
 	COverthrowGameMode:InitGameMode()
 	-- Custom Spawn
 	COverthrowGameMode:CustomSpawnCamps()
+
+	InitialiseRandom()
 	
 	FireGameEvent("addon_game_mode_activate",nil)
 	-- GameRules.GameMode = GameMode()

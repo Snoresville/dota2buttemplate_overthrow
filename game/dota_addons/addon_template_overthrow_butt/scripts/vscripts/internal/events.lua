@@ -50,7 +50,16 @@ ListenToGameEvent("game_rules_state_change", function()
 	end
 
 	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_STRATEGY_TIME) then
-		if 1 == BUTTINGS.USE_BOTS then
+		-- Filters out what bots can actually play based on the players' hero choices
+		if IsServer() and 1 == BUTTINGS.USE_BOTS then
+			_G.player_chosen_heroes = {}
+			for ID = 1, PlayerResource:GetPlayerCount() do
+				-- If the player is actually a bot
+				local playerID = ID - 1
+				if not PlayerResource:IsFakeClient(playerID) then
+					_G.player_chosen_heroes[PlayerResource:GetSelectedHeroName(playerID)] = true
+				end
+			end
 			SendToConsole("dota_bot_populate")
 		end
 	end
@@ -69,17 +78,29 @@ ListenToGameEvent("game_rules_state_change", function()
 	end
 
 	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_GAME_IN_PROGRESS) then
+		-- Adds the bot ai to the bots
 		if IsServer() and 1 == BUTTINGS.USE_BOTS then
+			local all_heroes = LoadKeyValues("scripts/npc/herolist.txt")
+			local bot_choices = {}
+			for hero_name, _ in pairs(all_heroes) do
+				if not _G.player_chosen_heroes[hero_name] then
+					table.insert(bot_choices, hero_name)
+				end
+			end
 			for ID = 1, PlayerResource:GetPlayerCount() do
 				-- If the player is actually a bot
 				local playerID = ID - 1
 				if PlayerResource:IsFakeClient(playerID) then
+					local choice_index = math.random(#bot_choices)
+					local new_hero_name = bot_choices[choice_index]
+					table.remove(bot_choices, choice_index)
 					Timers:CreateTimer(
 						0.1, function() 
 							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 0.1 end
-
-							local hero = PlayerResource:GetSelectedHeroEntity(playerID)
-							hero:AddNewModifier(hero, nil, "modifier_bot", {})
+							local new_hero = PlayerResource:ReplaceHeroWith(playerID, new_hero_name, PlayerResource:GetGold(playerID), 0)
+							new_hero:AddNewModifier(new_hero, nil, "modifier_bot", {})
+							-- local hero = PlayerResource:GetSelectedHeroEntity(playerID)
+							-- hero:AddNewModifier(hero, nil, "modifier_bot", {})
 						end
 					)
 				end
@@ -123,6 +144,10 @@ ListenToGameEvent("npc_spawned", function(keys)
 
 		elseif unit:IsCourier() then 
 			unit:AddNewModifier(unit, nil, "modifier_courier_speed", {})
+		end
+
+		if IsServer() and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and not unit:IsRealHero() then
+			unit:SetAcquisitionRange(99999)
 		end
 	end
 
