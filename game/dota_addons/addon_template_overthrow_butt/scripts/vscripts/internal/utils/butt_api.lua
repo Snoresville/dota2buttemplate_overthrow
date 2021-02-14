@@ -382,26 +382,23 @@ function InitialiseRandom()
     --math.randomseed()
 end
 
--- below is redundant
-
+-- Functions used by bot scripts to load up their item progression
 _G.item_kv = LoadKeyValues("scripts/npc/items.txt")
 function GetAllBuildComponents(hero_build)
 	local build_components = {}
 	for _, item in pairs(hero_build) do
-		print(item)
-		-- local components = GetAllItemComponents(item)
-		-- for _, component in pairs(components) do
-		-- 	table.insert(build_components, component)
-		-- end
+		local components = GetAllItemComponents(item)
+		for _, component in pairs(components) do
+			table.insert(build_components, component)
+		end
 	end
 	return build_components
 end
 
 function GetAllItemComponents(item)
 	local recipe_name = string.gsub(item, "item_", "item_recipe_")
-	print(item)
-	if item_kv[recipe] then
-		local recipe = item_kv[recipe]
+	if item_kv[recipe_name] then
+		local recipe = item_kv[recipe_name]
 		local return_components = {}
 		local subcomponents = string_split(recipe["ItemRequirements"]["01"], ";")
 		for i = 1, #subcomponents do
@@ -418,11 +415,15 @@ function GetAllItemComponents(item)
 
 		return return_components
 	else
-		local itemCost = item_kv[item]["ItemCost"]
-		if itemCost > 0 then 
+		local itemCost = tonumber(item_kv[item]["ItemCost"])
+		if itemCost ~= nil and itemCost > 0 then 
 			return {item}
 		else
 			return {} 
 		end
 	end
+end
+
+function GetGoldCostByItemName(item_name)
+	return item_kv[item_name]["ItemCost"]
 end

@@ -19,7 +19,7 @@ end
 function modifier_bot:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
-        --self:CreateItemProgression()
+        self:CreateItemProgression()
         
         self:StartIntervalThink(1)
     end
@@ -225,63 +225,52 @@ function modifier_bot:SpendAbilityPoints()
     end
 end
 
-modifier_bot.remove_core = {
-    ["item_magic_wand"] = true,
-}
-
-modifier_bot.item_restrict_suggestion = {
-    ["item_ring_of_aquila"] = true,
-    ["item_ultimate_scepter"] = true,
-    ["item_ultimate_scepter_2"] = true,
-    ["item_aghanims_shard"] = true,
-}
-
--- This is broken
--- Can't do shit without having to import EVERY item build and fixing it up myself
-
 function modifier_bot:CreateItemProgression()
-    local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
-    local hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")["Items"]
+    --local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
+    --local hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")["Items"]
     --for k,v in pairs(hero_build) do print(k,v) end
 
-    -- Always required according to dota default build
+    local item_suggestions = {
+        "item_abyssal_blade",
+        "item_greater_crit",
+        "item_bloodthorn",
+        "item_bfury",
+        "item_butterfly",
+        "item_monkey_king_bar",
+        "item_radiance",
+        "item_desolator",
+        "item_satanic",
+        "item_skadi",
+        "item_mjollnir",
+        "item_assault",
+        "item_heart",
+        "item_sphere",
+        "item_manta",
+        "item_gungir",
+        "item_octarine_core",
+        "item_travel_boots_2",
+        "item_guardian_greaves",
+        "item_pipe",
+        "item_vladmir",
+        "item_spirit_vessel",
+        "item_crimson_guard",
+        "item_lotus_orb",
+    }
+    
     local full_slots = {}
 
-    for k,v in pairs(hero_build) do
-        print(k,v)
-        for i,j in pairs(v) do
-            print(i, j)
-        end
+    while #full_slots < 6 do
+        local suggestion_index = math.random(#item_suggestions)
+        local suggestion = item_suggestions[suggestion_index]
+        print(suggestion)
+
+        table.remove(item_suggestions, suggestion_index)
+        table.insert(full_slots, suggestion)
     end
 
-    for _, item_name in pairs(hero_build["#DOTA_Item_Build_Late_Items"]) do
-        if not self.remove_core[item_name] then
-            table.insert(full_slots, item_name)
-        end
-    end
+    -- Aghs for good luck
+    table.insert(full_slots, "item_ultimate_scepter_2")
+    table.insert(full_slots, "item_aghanims_shard")
 
-    -- Can randomise
-    local situational = {}
-    for _, item_name in pairs(hero_build["#DOTA_Item_Build_Other_Items"]) do
-        if not self.item_restrict_suggestion[item_name] then
-            table.insert(situational, item_name)
-        end
-    end
-
-    -- while #full_slots < 6 do
-    --     local suggestion_index = math.random(#situational)
-    --     local suggestion = situational[suggestion_index]
-    --     if not self.item_restrict_suggestion[suggestion] then
-    --         table.remove(situational, suggestion_index)
-    --         table.insert(full_slots, suggestion)
-    --     end
-    -- end
-
-    -- -- Aghs for good luck
-    -- table.insert(full_slots, "item_ultimate_scepter_2")
-    -- table.insert(full_slots, "item_aghanims_shard")
-
-    -- self.item_progression = GetAllBuildComponents(full_slots)
-    -- print(self.bot:GetUnitName())
-    -- for k,v in pairs(self.item_progression) do print(k,v) end
+    self.item_progression = GetAllBuildComponents(full_slots)
 end
