@@ -28,6 +28,8 @@ end
 function modifier_bot:OnIntervalThink()
     if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
 
+    -- Bot improvement
+    if self.bot:IsInRangeOfShop(DOTA_SHOP_HOME, true) then self:ShopForItems() end
     if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
 
     if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
@@ -163,6 +165,31 @@ function modifier_bot:GetCastableAbilities()
 		::continue::
 	end
 
+    for index = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+		-- Ability in question
+		local ability = self.bot:GetAbilityByIndex(index)
+		
+		-- Ability checkpoint
+		if ability == nil then goto continue_item end
+		for _,behaviour in pairs(self.spell_filter_behavior) do
+			if HasBit( ability:GetBehavior(), behaviour ) then goto continue_item end
+		end
+		for _,bannedAbility in pairs(self.spell_filter_direct) do
+			if ability:GetAbilityName() == bannedAbility then goto continue_item end
+		end
+        if ability:GetCooldownTimeRemaining() ~= 0 then goto continue_item end
+        if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue_item end
+        if not ability:IsActivated() then goto continue_item end
+        if ability.RequiresCharges and ability:GetCurrentCharges() == 0 then goto continue_item end
+		
+		-- Add that ability after checkpoint
+		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
+		table.insert(abilities, ability)
+		
+		-- Skip
+		::continue_item::
+	end
+
     return abilities
 end
 
@@ -225,6 +252,23 @@ function modifier_bot:SpendAbilityPoints()
     end
 end
 
+function modifier_bot:ShopForItems()
+    if #self.item_progression == 0 then return end
+
+    local target_item = self.item_progression[1]
+
+    if ItemName_GetGoldCost(target_item) <= self.bot:GetGold() then
+        print(target_item)
+        print(ItemName_GetID(target_item))
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_PURCHASE_ITEM,
+            AbilityIndex = ItemName_GetID(target_item)
+        })
+        table.remove(self.item_progression, 1)
+    end
+end
+
 function modifier_bot:CreateItemProgression()
     --local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
     --local hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")["Items"]
@@ -262,7 +306,6 @@ function modifier_bot:CreateItemProgression()
     while #full_slots < 6 do
         local suggestion_index = math.random(#item_suggestions)
         local suggestion = item_suggestions[suggestion_index]
-        print(suggestion)
 
         table.remove(item_suggestions, suggestion_index)
         table.insert(full_slots, suggestion)

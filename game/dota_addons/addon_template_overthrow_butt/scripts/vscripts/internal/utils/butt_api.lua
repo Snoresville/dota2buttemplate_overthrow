@@ -424,6 +424,10 @@ function GetAllItemComponents(item)
 	end
 end
 
-function GetGoldCostByItemName(item_name)
+function ItemName_GetGoldCost(item_name)
 	return item_kv[item_name]["ItemCost"]
+end
+
+function ItemName_GetID(item_name)
+	return item_kv[item_name]["ID"]
 end
