@@ -7,7 +7,7 @@ function modifier_bot:IsPermanent() return true end
 function modifier_bot:RemoveOnDeath() return false end
 function modifier_bot:IsHidden() return false end 	-- we can hide the modifier
 function modifier_bot:IsDebuff() return false end 	-- make it red or green
-function modifier_bot:AllowIllusionDuplicate() return true end
+function modifier_bot:AllowIllusionDuplicate() return false end
 
 function modifier_bot:GetAttributes()
 	return 0
@@ -33,6 +33,7 @@ function modifier_bot:OnIntervalThink()
     if self.bot:IsInRangeOfShop(DOTA_SHOP_HOME, true) then self:ShopForItems() end
     if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
 
+    if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
 
     -- Search before moving
@@ -135,6 +136,9 @@ modifier_bot.spell_filter_behavior = {
 modifier_bot.spell_filter_direct = {
     -- Misc
     "generic_hidden",
+
+    -- Chen
+    "chen_holy_persuasion",
 
     -- Lifestealer
     "life_stealer_infest",
@@ -273,7 +277,7 @@ function modifier_bot:FindClosestHero(notSelfTarget)
         FIND_UNITS_EVERYWHERE, 
         DOTA_UNIT_TARGET_TEAM_BOTH, 
         DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-        DOTA_UNIT_TARGET_FLAG_NONE, 
+        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
         FIND_ANY_ORDER, false)
 
     if notSelfTarget and #search > 1 then
@@ -285,7 +289,7 @@ function modifier_bot:FindClosestHero(notSelfTarget)
                 FIND_UNITS_EVERYWHERE, 
                 DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
                 DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-                DOTA_UNIT_TARGET_FLAG_NONE, 
+                DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
                 FIND_ANY_ORDER, false)
         end
     end
