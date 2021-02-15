@@ -1,6 +1,5 @@
 # This template is not my original work. All rights goes to Schokokeks for creating the original template.
 
-### Index
 This template is derived from Schokokek's template, meaning that most of its functionality can be done with this template.
 
 Due to the port, this template may be highly unstable. Please contact Snoresville#2486 via Discord with details of any errors.
