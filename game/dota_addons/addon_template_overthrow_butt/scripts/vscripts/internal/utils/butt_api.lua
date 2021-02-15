@@ -384,6 +384,7 @@ end
 
 -- Functions used by bot scripts to load up their item progression
 _G.item_kv = LoadKeyValues("scripts/npc/items.txt")
+_G.ability_kv = LoadKeyValues("scripts/npc/npc_abilities.txt")
 function GetAllBuildComponents(hero_build)
 	local build_components = {}
 	for _, item in pairs(hero_build) do
@@ -401,11 +402,12 @@ function GetAllItemComponents(item)
 		local recipe = item_kv[recipe_name]
 		local return_components = {}
 		local item_requirements
+
 		for _, requirements in pairs(recipe["ItemRequirements"]) do
 			item_requirements = requirements
 			break
 		end
-		print(recipe_name)
+		--print(recipe_name)
 		local subcomponents = string_split(item_requirements, ";")
 		for i = 1, #subcomponents do
 			subcomponents[i] = string_split(subcomponents[i], "*")[1]
@@ -436,4 +438,19 @@ end
 
 function ItemName_GetID(item_name)
 	return item_kv[item_name]["ID"]
+end
+
+function CanCastOnSpellImmune(hAbility)
+	if not hAbility then return false end
+
+	local spell_immunity_type
+	if hAbility:IsItem() then
+		spell_immunity_type = item_kv[hAbility:GetAbilityName()]["SpellImmunityType"]
+	else
+		spell_immunity_type = ability_kv[hAbility:GetAbilityName()]["SpellImmunityType"]
+	end
+
+	if not spell_immunity_type or spell_immunity_type == "SPELL_IMMUNITY_ENEMIES_NO" then return false end
+
+	return true
 end

@@ -33,7 +33,6 @@ function modifier_bot:OnIntervalThink()
     self:ShopForItems()
     if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
 
-    if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
 
     -- Search before moving
@@ -67,6 +66,7 @@ function modifier_bot:TargetDecision(hTarget)
 
     if abilityQueued then
         --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
+        --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
     end
     if abilityQueued then
         if HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
@@ -90,6 +90,7 @@ function modifier_bot:TargetDecision(hTarget)
 end
 
 function modifier_bot:Decision_AttackTarget(hTarget)
+    if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if hTarget:IsAlive() then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -106,8 +107,7 @@ function modifier_bot:Decision_AttackTarget(hTarget)
 end
 
 function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
-    if type(hTarget) == "table" then hTarget = hTarget[1] end
-    if hTarget and hAbility:CastFilterResultTarget(hTarget) == UF_SUCCESS then
+    if hTarget:IsAlive() and (CanCastOnSpellImmune(hAbility) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -129,7 +129,7 @@ function modifier_bot:Decision_CastTargetPoint(hTarget, hAbility)
 end
 
 function modifier_bot:Decision_CastTargetNone(hTarget, hAbility)
-    print(hAbility:GetAbilityName().." has cast range: "..hAbility:GetCastRange(nil, nil))
+    --print(hAbility:GetAbilityName().." has cast range: "..hAbility:GetCastRange(nil, nil))
     if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -192,7 +192,7 @@ function modifier_bot:GetCastableAbilities()
 		if ability == nil then goto continue end
         if ability:GetLevel() == 0 then goto continue end
         if ability:IsHidden() then goto continue end
-        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
+        if --[[HasBit( ability:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET ) and]] HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
 		for _,behaviour in pairs(self.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end
 		end
@@ -356,7 +356,7 @@ function modifier_bot:ShopForItems()
     local target_item = self.item_progression[1]
 
     if ItemName_GetGoldCost(target_item) <= self.bot:GetGold() then
-        print(self.bot:GetUnitName().." purchases ".target_item, "price: "..ItemName_GetID(target_item))
+        --print(self.bot:GetUnitName().." purchases "..target_item, "price: "..ItemName_GetGoldCost(target_item))
         self.bot:AddItemByName(target_item)
         self.bot:SpendGold(ItemName_GetGoldCost(target_item), DOTA_ModifyGold_PurchaseItem)
         table.remove(self.item_progression, 1)
