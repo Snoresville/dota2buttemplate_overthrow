@@ -400,7 +400,13 @@ function GetAllItemComponents(item)
 	if item_kv[recipe_name] then
 		local recipe = item_kv[recipe_name]
 		local return_components = {}
-		local subcomponents = string_split(recipe["ItemRequirements"]["01"], ";")
+		local item_requirements
+		for _, requirements in pairs(recipe["ItemRequirements"]) do
+			item_requirements = requirements
+			break
+		end
+		print(recipe_name)
+		local subcomponents = string_split(item_requirements, ";")
 		for i = 1, #subcomponents do
 			subcomponents[i] = string_split(subcomponents[i], "*")[1]
 		end

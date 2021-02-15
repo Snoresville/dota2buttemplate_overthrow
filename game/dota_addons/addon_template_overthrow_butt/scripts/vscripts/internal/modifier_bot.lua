@@ -22,7 +22,7 @@ function modifier_bot:OnCreated()
         self.bot:SetControllableByPlayer(self.bot:GetPlayerOwnerID(), true)
         self:CreateItemProgression()
         
-        self:StartIntervalThink(1)
+        self:StartIntervalThink(0.25)
     end
 end
 
@@ -30,7 +30,7 @@ function modifier_bot:OnIntervalThink()
     if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
 
     -- Bot improvement
-    if self.bot:IsInRangeOfShop(DOTA_SHOP_HOME, true) then self:ShopForItems() end
+    self:ShopForItems()
     if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
 
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
@@ -66,64 +66,78 @@ function modifier_bot:TargetDecision(hTarget)
     end
 
     if abilityQueued then
-        print("A BOT IS CASTING: " .. abilityQueued:GetAbilityName())
+        --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
     end
-    if abilityQueued and hTarget:IsAlive() then
+    if abilityQueued then
         if HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
-            if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then -- If it only targets friendlies
+            if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then  -- If it only targets friendlies
                 local ally_search = self:GetClosestAlly(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
-                if ally_search and self.bot:GetRangeToUnit(ally_search[1]) <= abilityQueued:GetCastRange(nil, nil) then
-                    ExecuteOrderFromTable({
-                        UnitIndex = self.bot:entindex(),
-                        OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
-                        TargetIndex = ally_search[1]:entindex(),
-                        AbilityIndex = abilityQueued:entindex()
-                    })
-                else
-                    ExecuteOrderFromTable({
-                        UnitIndex = self.bot:entindex(),
-                        OrderType = DOTA_UNIT_ORDER_ATTACK_TARGET,
-                        TargetIndex = hTarget:entindex()
-                    })
-                end
-            elseif abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_BOTH then
+                self:Decision_CastTargetEntity(ally_search[1], abilityQueued, hTarget)
+            elseif abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_BOTH then  -- Pick the closest guy
                 local hero_search = self:FindClosestHero(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
-                if hero_search then
-                    ExecuteOrderFromTable({
-                        UnitIndex = self.bot:entindex(),
-                        OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
-                        TargetIndex = hero_search[1]:entindex(),
-                        AbilityIndex = abilityQueued:entindex()
-                    })
-                end
+                self:Decision_CastTargetEntity(hero_search[1], abilityQueued, hTarget)
             else
-                ExecuteOrderFromTable({
-                    UnitIndex = self.bot:entindex(),
-                    OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
-                    TargetIndex = hTarget:entindex(),
-                    AbilityIndex = abilityQueued:entindex()
-                })
+                self:Decision_CastTargetEntity(hTarget, abilityQueued, hTarget)             -- It's definitely an enemy-only target ability
             end
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
-            ExecuteOrderFromTable({
-                UnitIndex = self.bot:entindex(),
-                OrderType = DOTA_UNIT_ORDER_CAST_POSITION,
-                Position = hTarget:GetAbsOrigin(),
-                AbilityIndex = abilityQueued:entindex()
-            })
+            self:Decision_CastTargetPoint(hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_NO_TARGET) then
-            ExecuteOrderFromTable({
-                UnitIndex = self.bot:entindex(),
-                OrderType = DOTA_UNIT_ORDER_CAST_NO_TARGET,
-                AbilityIndex = abilityQueued:entindex()
-            })
+            self:Decision_CastTargetNone(hTarget, abilityQueued)
         end
+    else
+        self:Decision_AttackTarget(hTarget)
+    end
+end
+
+function modifier_bot:Decision_AttackTarget(hTarget)
+    if hTarget:IsAlive() then
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_ATTACK_TARGET,
+            TargetIndex = hTarget:entindex()
+        })
     else
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
             Position = hTarget:GetAbsOrigin()
         })
+    end
+end
+
+function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
+    if type(hTarget) == "table" then hTarget = hTarget[1] end
+    if hTarget and hAbility:CastFilterResultTarget(hTarget) == UF_SUCCESS then
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
+            TargetIndex = hTarget:entindex(),
+            AbilityIndex = hAbility:entindex()
+        })
+    else
+        self:Decision_AttackTarget(hFallback)
+    end
+end
+
+function modifier_bot:Decision_CastTargetPoint(hTarget, hAbility)
+    ExecuteOrderFromTable({
+        UnitIndex = self.bot:entindex(),
+        OrderType = DOTA_UNIT_ORDER_CAST_POSITION,
+        Position = hTarget:GetAbsOrigin(),
+        AbilityIndex = hAbility:entindex()
+    })
+end
+
+function modifier_bot:Decision_CastTargetNone(hTarget, hAbility)
+    print(hAbility:GetAbilityName().." has cast range: "..hAbility:GetCastRange(nil, nil))
+    if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_CAST_NO_TARGET,
+            AbilityIndex = hAbility:entindex()
+        })
+    else
+        self:Decision_AttackTarget(hTarget)
     end
 end
 
@@ -160,7 +174,7 @@ modifier_bot.spell_filter_direct = {
     "spectre_reality",
 
     -- Templar
-    "templar_assassin_self_trap",
+    "templar_assassin_trap",
 }
 
 function modifier_bot:GetCastableAbilities()
@@ -252,17 +266,21 @@ function modifier_bot:GetClosestAlly(notSelfTarget)
         DOTA_UNIT_TARGET_FLAG_NONE, 
         FIND_ANY_ORDER, false)
 
-    if notSelfTarget and #search > 1 then
-        while search[1] == self.bot do
-            search = FindUnitsInRadius(
-                self.bot:GetTeam(), 
-                self.bot:GetAbsOrigin(), 
-                nil, 
-                FIND_UNITS_EVERYWHERE, 
-                DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
-                DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-                DOTA_UNIT_TARGET_FLAG_NONE, 
-                FIND_ANY_ORDER, false)
+    if notSelfTarget then
+        if #search > 1 then
+            while search[1] == self.bot do
+                search = FindUnitsInRadius(
+                    self.bot:GetTeam(), 
+                    self.bot:GetAbsOrigin(), 
+                    nil, 
+                    FIND_UNITS_EVERYWHERE, 
+                    DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
+                    DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
+                    DOTA_UNIT_TARGET_FLAG_NONE, 
+                    FIND_ANY_ORDER, false)
+            end
+        else
+            return false
         end
     end
 
@@ -280,17 +298,21 @@ function modifier_bot:FindClosestHero(notSelfTarget)
         DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
         FIND_ANY_ORDER, false)
 
-    if notSelfTarget and #search > 1 then
-        while search[1] == self.bot do
-            search = FindUnitsInRadius(
-                self.bot:GetTeam(), 
-                self.bot:GetAbsOrigin(), 
-                nil, 
-                FIND_UNITS_EVERYWHERE, 
-                DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
-                DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-                DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
-                FIND_ANY_ORDER, false)
+    if notSelfTarget then
+        if #search > 1 then
+            while search[1] == self.bot do
+                search = FindUnitsInRadius(
+                    self.bot:GetTeam(), 
+                    self.bot:GetAbsOrigin(), 
+                    nil, 
+                    FIND_UNITS_EVERYWHERE, 
+                    DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
+                    DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
+                    DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
+                    FIND_ANY_ORDER, false)
+            end
+        else
+            return false
         end
     end
 
@@ -334,10 +356,9 @@ function modifier_bot:ShopForItems()
     local target_item = self.item_progression[1]
 
     if ItemName_GetGoldCost(target_item) <= self.bot:GetGold() then
-        print(target_item, ItemName_GetID(target_item))
+        print(self.bot:GetUnitName().." purchases ".target_item, "price: "..ItemName_GetID(target_item))
         self.bot:AddItemByName(target_item)
         self.bot:SpendGold(ItemName_GetGoldCost(target_item), DOTA_ModifyGold_PurchaseItem)
-        EmitSoundOnLocationWithCaster(self.bot:GetAbsOrigin(), "General.Buy", self.bot)
         table.remove(self.item_progression, 1)
     end
 end
@@ -348,6 +369,7 @@ function modifier_bot:CreateItemProgression()
     --for k,v in pairs(hero_build) do print(k,v) end
 
     local item_suggestions = {
+        -- Weapons
         "item_abyssal_blade",
         "item_greater_crit",
         "item_bloodthorn",
@@ -356,22 +378,53 @@ function modifier_bot:CreateItemProgression()
         "item_monkey_king_bar",
         "item_radiance",
         "item_desolator",
+        "item_nullifier",
+        "item_silver_edge",
+        "item_ethereal_blade",
+
+        -- Artifacts
         "item_satanic",
         "item_skadi",
         "item_mjollnir",
+        "item_heavens_halberd",
+        "item_sange_and_yasha",
+        "item_yasha_and_kaya",
+        "item_kaya_and_sange",
+        "item_overwhelming_blink",
+        "item_swift_blink",
+        "item_arcane_blink",
+
+        -- Armor
         "item_assault",
         "item_heart",
         "item_sphere",
         "item_manta",
+        "item_shivas_guard",
+        "item_hurricane_pike",
+        "item_crimson_guard",
+        "item_lotus_orb",
+        "item_black_king_bar",
+        "item_blade_mail",
+
+        -- Magical
         "item_gungir",
         "item_octarine_core",
-        "item_travel_boots_2",
+        "item_wind_waker",
+        "item_refresher",
+        "item_solar_crest",
+        "item_necronomicon_3",
+        "item_dagon_5",
+
+        -- Support
         "item_guardian_greaves",
         "item_pipe",
         "item_vladmir",
         "item_spirit_vessel",
-        "item_crimson_guard",
-        "item_lotus_orb",
+
+        -- Accessories
+        "item_travel_boots_2",
+        "item_mask_of_madness",
+        "item_phase_boots",
     }
     
     local full_slots = {}
