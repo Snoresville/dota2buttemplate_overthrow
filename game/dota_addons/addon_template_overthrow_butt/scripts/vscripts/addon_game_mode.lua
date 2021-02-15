@@ -90,6 +90,8 @@ function Precache( context )
 			PrecacheResource( "particle", "*.vpcf", context )
 			PrecacheResource( "particle_folder", "particles/folder", context )
 	]]
+
+	PrecacheResource( "particle", "particles/in_particles/core_gy_teleporter.vpcf", context )
 	
 	--Cache the gold bags
 		PrecacheItemByNameSync( "item_bag_of_gold", context )
@@ -600,4 +602,11 @@ function COverthrowGameMode:ExecuteOrderFilter( filterTable )
 		end
 	end
 	return true
+end
+
+function CDOTA_BaseNPC_Hero:AddExperienceCustom(xp, reason, applyBotDifficultyScaling, incrementTotal)
+	if self:IsTempestDouble() then
+		return
+	end
+	self:AddExperience(xp, reason, applyBotDifficultyScaling, incrementTotal)
 end
