@@ -85,7 +85,7 @@ function modifier_bot:TargetDecision(hTarget)
             self:Decision_CastTargetNone(hTarget, abilityQueued)
         end
     else
-        self:Decision_AttackTarget(hTarget)
+        self:Decision_AttackMove(hTarget)
     end
 end
 
@@ -98,12 +98,17 @@ function modifier_bot:Decision_AttackTarget(hTarget)
             TargetIndex = hTarget:entindex()
         })
     else
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
-            Position = hTarget:GetAbsOrigin()
-        })
+        self:Decision_AttackMove(hTarget)
     end
+end
+
+function modifier_bot:Decision_AttackMove(hTarget)
+    if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
+    ExecuteOrderFromTable({
+        UnitIndex = self.bot:entindex(),
+        OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
+        Position = hTarget:GetAbsOrigin()
+    })
 end
 
 function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)

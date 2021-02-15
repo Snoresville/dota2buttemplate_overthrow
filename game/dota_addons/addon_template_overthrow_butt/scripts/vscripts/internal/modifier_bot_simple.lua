@@ -19,7 +19,7 @@ end
 function modifier_bot_simple:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
-        self:StartIntervalThink(1)
+        self:StartIntervalThink(0.25)
     end
 end
 
@@ -33,6 +33,7 @@ function modifier_bot_simple:OnIntervalThink()
     if search then                                              -- Bot can see at least one enemy
         self:TargetDecision(search[1])
     elseif self.bot:HasMovementCapability() then                -- Default move to arena
+        if self.bot:IsAttacking() then return end
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
@@ -42,6 +43,7 @@ function modifier_bot_simple:OnIntervalThink()
 end
 
 function modifier_bot_simple:TargetDecision(hTarget)
+    if self.bot:IsAttacking() then return end
     if self.bot:HasMovementCapability() then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),

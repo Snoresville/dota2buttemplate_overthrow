@@ -64,8 +64,19 @@ function InternalFilters:ModifierGainedFilter(event)
 	return Filters:ModifierGainedFilter(event)
 end
 
+function InternalFilters:GetTeamCount()
+	if BUTTINGS.TEAM_COUNT_COMPENSATION == 0 then return 2 end
+
+	local teamCount = 0
+	for i = DOTA_TEAM_GOODGUYS, DOTA_TEAM_CUSTOM_8 do
+		local team = GameRules:GetCustomGameTeamMaxPlayers(i)
+		if team > 0 then teamCount = teamCount + 1 end
+	end
+	return math.max(teamCount, 2)
+end
+
 function InternalFilters:ModifyExperienceFilter(event)
-	event.experience = event.experience * BUTTINGS.XP_GAIN_PERCENTAGE * 0.01
+	event.experience = event.experience * BUTTINGS.XP_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 2)
 
 	-- PrintTable(event)
 	local playerID = event.player_id_const
@@ -94,7 +105,7 @@ function InternalFilters:ModifyExperienceFilter(event)
 end
 
 function InternalFilters:ModifyGoldFilter(event)
-	event.gold = event.gold * BUTTINGS.GOLD_GAIN_PERCENTAGE * 0.01
+	event.gold = event.gold * BUTTINGS.GOLD_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 2)
 
 	-- PrintTable(event) 
 	local playerID = event.player_id_const
