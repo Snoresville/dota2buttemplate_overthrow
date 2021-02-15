@@ -22,7 +22,7 @@ function modifier_bot:OnCreated()
         self.bot:SetControllableByPlayer(self.bot:GetPlayerOwnerID(), true)
         self:CreateItemProgression()
         
-        self:StartIntervalThink(0.25)
+        self:StartIntervalThink(0.5)
     end
 end
 
@@ -41,6 +41,7 @@ function modifier_bot:OnIntervalThink()
     if search then                                              -- Bot can see at least one enemy
         self:TargetDecision(search[1])
     else                                                        -- Default move to arena
+        if self.bot:IsAttacking() then return end
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
@@ -67,9 +68,12 @@ function modifier_bot:TargetDecision(hTarget)
     if abilityQueued then
         --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
+        print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
     if abilityQueued then
-        if HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
+        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
+            self:Decision_Tree(abilityQueued)
+        elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then  -- If it only targets friendlies
                 local ally_search = self:GetClosestAlly(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
                 self:Decision_CastTargetEntity(ally_search[1], abilityQueued, hTarget)
@@ -146,6 +150,53 @@ function modifier_bot:Decision_CastTargetNone(hTarget, hAbility)
     end
 end
 
+function modifier_bot:Decision_Tree(hTarget, hAbility)
+    local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
+    local tree
+    for _, tree_check in pairs(trees) do
+        if tree_check:IsStanding() then
+            tree = tree_check
+            break
+        end
+    end
+
+    if tree then
+        if HasBit(hAbility:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
+            ExecuteOrderFromTable({
+                UnitIndex = self.bot:entindex(),
+                OrderType = DOTA_UNIT_ORDER_CAST_TARGET_TREE,
+                TargetIndex = tree:entindex(),
+                AbilityIndex = hAbility:entindex()
+            })
+        elseif HasBit(hAbility:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
+            self:Decision_CastTargetPoint(tree, hAbility)
+        else
+            self:Decision_AttackTarget(hTarget)
+        end
+    else
+        self:Decision_AttackTarget(hTarget)
+    end
+end
+
+modifier_bot:Decision_Ability = {
+    tiny_toss = function(hTarget, hAbility)
+        local search = FindUnitsInRadius(
+            self.bot:GetTeam(), 
+            self.bot:GetAbsOrigin(), 
+            nil, 
+            hAbility:GetSpecialValueFor("grab_radius"), 
+            DOTA_UNIT_TARGET_TEAM_BOTH, 
+            DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
+            DOTA_UNIT_TARGET_FLAG_NONE, 
+            FIND_ANY_ORDER, false)
+        if #search > 0 then
+            self:Decision_CastTargetEntity(hTarget, abilityQueued, hTarget)
+        else
+            self:Decision_AttackTarget(hTarget)
+        end
+    end,
+}
+
 modifier_bot.spell_filter_behavior = {
     DOTA_ABILITY_BEHAVIOR_PASSIVE,
     DOTA_ABILITY_BEHAVIOR_ATTACK,
@@ -197,7 +248,7 @@ function modifier_bot:GetCastableAbilities()
 		if ability == nil then goto continue end
         if ability:GetLevel() == 0 then goto continue end
         if ability:IsHidden() then goto continue end
-        if --[[HasBit( ability:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET ) and]] HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
+        --if --[[HasBit( ability:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET ) and]] HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
 		for _,behaviour in pairs(self.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end
 		end
