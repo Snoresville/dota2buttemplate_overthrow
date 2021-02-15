@@ -13,7 +13,7 @@ Check it out!
 
 
 
-## Credits
+# Credits
 ### Maps
 https://github.com/dota2unofficial/overthrow2 - Dota 2 Unofficial Team (core_quartet + desert_octet)
 
