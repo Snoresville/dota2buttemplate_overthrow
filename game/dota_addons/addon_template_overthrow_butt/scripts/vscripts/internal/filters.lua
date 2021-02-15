@@ -76,7 +76,7 @@ function InternalFilters:GetTeamCount()
 end
 
 function InternalFilters:ModifyExperienceFilter(event)
-	event.experience = event.experience * BUTTINGS.XP_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 2)
+	event.experience = event.experience * BUTTINGS.XP_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 1)
 
 	-- PrintTable(event)
 	local playerID = event.player_id_const
@@ -105,7 +105,7 @@ function InternalFilters:ModifyExperienceFilter(event)
 end
 
 function InternalFilters:ModifyGoldFilter(event)
-	event.gold = event.gold * BUTTINGS.GOLD_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 2)
+	event.gold = event.gold * BUTTINGS.GOLD_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 1)
 
 	-- PrintTable(event) 
 	local playerID = event.player_id_const

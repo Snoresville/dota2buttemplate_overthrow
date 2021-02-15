@@ -454,3 +454,8 @@ function CanCastOnSpellImmune(hAbility)
 
 	return true
 end
+
+function CDOTABaseAbility:HasCharges()
+	if ability_kv[self:GetAbilityName()] and ability_kv[self:GetAbilityName()]["AbilityCharges"] then return true end
+	return false
+end

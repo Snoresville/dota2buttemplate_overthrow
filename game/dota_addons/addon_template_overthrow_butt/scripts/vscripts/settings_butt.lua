@@ -11,7 +11,7 @@ BUTTINGS = {
 
 	UNIVERSAL_SHOP_MODE = 1,            -- 0 = normal, 1 = you can buy every item in every shop (secret/side/base).
 	--ALWAYS_PASSIVE_GOLD = 0,			-- 0 = normal (always),  1 = when custom courier is dead passive gold is disabled;
-	TEAM_COUNT_COMPENSATION	= 0,		-- Due to the gameplay of Overthrow, Gold and XP gains must be adjusted to match the usual gold and xp progression.
+	TEAM_COUNT_COMPENSATION	= 1,		-- Due to the gameplay of Overthrow, Gold and XP gains must be adjusted to match the usual gold and xp progression.
 	COOLDOWN_PERCENTAGE = 100,          -- (default = 100) factor for all cooldowns
 	GOLD_GAIN_PERCENTAGE = 100,         -- (default = 100) factor for gold income
 	GOLD_PER_MINUTE = 95,               -- (default =  90) passive gold
@@ -92,6 +92,7 @@ if IsInToolsMode() then
 	BUTTINGS.USE_BOTS = 1 
 	BUTTINGS.ALT_KILL_LIMIT = 100
 	BUTTINGS.ALT_TIME_LIMIT = 10
+	BUTTINGS.TEAM_COUNT_COMPENSATION = 1
 end
 
 BUTTINGS_DEFAULT = table.copy(BUTTINGS)

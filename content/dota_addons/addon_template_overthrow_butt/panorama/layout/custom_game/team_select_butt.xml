@@ -45,10 +45,8 @@
 						</Panel>
 						<Panel class="SettingsGroup w-31">
 								<Label class="SettingsGroupTitle" text="Economy"/>
-								<!--
 								<ToggleButton id="TEAM_COUNT_COMPENSATION" class="SettingsItem" text="Team Count Compensation"
 															onactivate="onPanelChange('TEAM_COUNT_COMPENSATION')"/>
-								-->
 								<Panel class="SettingsItem TextEntryFrame">
 										<TextEntry onfocus="onfocus('XP_GAIN_PERCENTAGE')"
 																oninputsubmit="onPanelChange('XP_GAIN_PERCENTAGE')"

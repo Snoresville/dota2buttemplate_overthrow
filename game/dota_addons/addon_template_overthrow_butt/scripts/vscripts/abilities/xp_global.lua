@@ -41,29 +41,27 @@ modifier_get_xp_global = {
 	GetEffectName = function() return "particles/econ/courier/courier_greevil_yellow/courier_greevil_yellow_ambient_3_b.vpcf" end,
 }
 
-if IsServer() then
-	function modifier_get_xp_global:OnCreated()
-		self:StartIntervalThink(0.5)
-	end
+function modifier_get_xp_global:OnCreated()
+	if IsClient() then return end
+	self:StartIntervalThink(0.5)
+end
 
-	function modifier_get_xp_global:OnIntervalThink()
-		local parent = self:GetParent()
-		local ability = self:GetAbility()
+function modifier_get_xp_global:OnIntervalThink()
+	local parent = self:GetParent()
+	local ability = self:GetAbility()
 
-		local xp = ability:GetSpecialValueFor("aura_xp")
-		local gold = ability:GetSpecialValueFor("aura_gold")
-		if parent:IsRealHero() then
-			parent:ModifyGold(gold, false, 0)
-			parent:AddExperienceCustom(xp, 0, false, false)
-		end
+	local xp = ability:GetSpecialValueFor("aura_xp")
+	local gold = ability:GetSpecialValueFor("aura_gold")
+	if parent:IsRealHero() then
+		parent:ModifyGold(gold, false, 0)
+		parent:AddExperienceCustom(xp, 0, false, false)
 	end
 end
 
 LinkLuaModifier("modifier_get_xp_core_global", "abilities/xp_global", LUA_MODIFIER_MOTION_NONE)
 modifier_get_xp_core_global = class(modifier_get_xp_global)
 function modifier_get_xp_core_global:IsHidden()
-	local parent = self:GetParent()
-	return parent:HasModifier("modifier_get_xp") or parent:HasModifier("modifier_get_xp_late_bonus")
+	return self:GetParent():HasModifier("modifier_get_xp")
 end
 function modifier_get_xp_core_global:OnIntervalThink()
 	if not self:IsHidden() then

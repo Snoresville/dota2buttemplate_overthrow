@@ -68,11 +68,13 @@ function modifier_bot:TargetDecision(hTarget)
     if abilityQueued then
         --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
-        print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
+        --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
     if abilityQueued then
-        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
-            self:Decision_Tree(abilityQueued)
+        if self.Decision_Ability[abilityQueued:GetAbilityName()] then
+            self.Decision_Ability[abilityQueued:GetAbilityName()](hTarget, abilityQueued)
+        elseif HasBit( abilityQueued:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
+            self:Decision_Tree(hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then  -- If it only targets friendlies
                 local ally_search = self:GetClosestAlly(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
@@ -116,7 +118,7 @@ function modifier_bot:Decision_AttackMove(hTarget)
 end
 
 function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
-    if hTarget:IsAlive() and (CanCastOnSpellImmune(hAbility) or not hTarget:IsMagicImmune()) then
+    if hTarget and hTarget:IsAlive() and (CanCastOnSpellImmune(hAbility) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -178,7 +180,7 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
     end
 end
 
-modifier_bot:Decision_Ability = {
+modifier_bot.Decision_Ability = {
     tiny_toss = function(hTarget, hAbility)
         local search = FindUnitsInRadius(
             self.bot:GetTeam(), 
@@ -258,7 +260,7 @@ function modifier_bot:GetCastableAbilities()
         if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
         if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
         if not ability:IsActivated() then goto continue end
-        if ability.RequiresCharges and ability:GetCurrentCharges() == 0 then goto continue end
+        if ability:HasCharges() and ability:GetCurrentAbilityCharges() == 0 then goto continue end
 		
 		-- Add that ability after checkpoint
 		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
@@ -336,11 +338,11 @@ function modifier_bot:GetClosestAlly(notSelfTarget)
                     FIND_ANY_ORDER, false)
             end
         else
-            return false
+            return {}
         end
     end
 
-    return #search > 0 and search or false 
+    return #search > 0 and search or {} 
 end
 
 function modifier_bot:FindClosestHero(notSelfTarget)
@@ -368,11 +370,11 @@ function modifier_bot:FindClosestHero(notSelfTarget)
                     FIND_ANY_ORDER, false)
             end
         else
-            return false
+            return {}
         end
     end
 
-    return #search > 0 and search or false 
+    return #search > 0 and search or {} 
 end
 
 function modifier_bot:SpendAbilityPoints()
