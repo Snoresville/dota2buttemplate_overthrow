@@ -50,14 +50,6 @@ function modifier_bot:OnIntervalThink()
     end
 end
 
-modifier_bot.cannot_self_target = {
-    -- Spells
-    ["abaddon_death_coil"] = true,
-
-    -- Items
-    ["item_sphere"] = true,
-}
-
 function modifier_bot:TargetDecision(hTarget)
     local castableAbilities = self:GetCastableAbilities()
     local abilityQueued
@@ -66,15 +58,17 @@ function modifier_bot:TargetDecision(hTarget)
     end
 
     if abilityQueued then
-        --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
+        print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
     if abilityQueued then
         if self.Decision_Ability[abilityQueued:GetAbilityName()] then
-            self.Decision_Ability[abilityQueued:GetAbilityName()](hTarget, abilityQueued)
+            self.Decision_Ability[abilityQueued:GetAbilityName()](self, hTarget, abilityQueued)
         elseif HasBit( abilityQueued:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
             self:Decision_Tree(hTarget, abilityQueued)
+        elseif HasBit( abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_TOGGLE) then
+            self:Decision_Toggle(hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then  -- If it only targets friendlies
                 local ally_search = self:GetClosestAlly(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
@@ -95,6 +89,9 @@ function modifier_bot:TargetDecision(hTarget)
     end
 end
 
+--
+-- Decision Making
+--
 function modifier_bot:Decision_AttackTarget(hTarget)
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if hTarget:IsAlive() then
@@ -140,7 +137,6 @@ function modifier_bot:Decision_CastTargetPoint(hTarget, hAbility)
 end
 
 function modifier_bot:Decision_CastTargetNone(hTarget, hAbility)
-    --print(hAbility:GetAbilityName().." has cast range: "..hAbility:GetCastRange(nil, nil))
     if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -156,18 +152,19 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
     for _, tree_check in pairs(trees) do
-        if tree_check:IsStanding() then
+        if tree_check and tree_check:IsStanding() then
             tree = tree_check
             break
         end
     end
 
     if tree then
+        print(hAbility:GetAbilityName())
         if HasBit(hAbility:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             ExecuteOrderFromTable({
                 UnitIndex = self.bot:entindex(),
                 OrderType = DOTA_UNIT_ORDER_CAST_TARGET_TREE,
-                TargetIndex = tree:entindex(),
+                TargetIndex = GetTreeIdForEntityIndex(tree:entindex()),
                 AbilityIndex = hAbility:entindex()
             })
         elseif HasBit(hAbility:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
@@ -180,8 +177,31 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
     end
 end
 
+function modifier_bot:Decision_CastEnemyCreep(hTarget, hAbility)
+    local search = self:FindClosestEnemyCreep(hTarget, hAbility)
+    if search then
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
+            TargetIndex = search:entindex(),
+            AbilityIndex = hAbility:entindex()
+        })
+    else
+        self:Decision_AttackTarget(hTarget)
+    end
+end
+
+function modifier_bot:Decision_Toggle(hTarget, hAbility)
+    -- Turn on the toggles
+    if hAbility:IsToggle() and hAbility:GetToggleState() == false then
+        hAbility:OnToggle()
+    else
+        self:Decision_AttackTarget(hTarget)
+    end
+end
+
 modifier_bot.Decision_Ability = {
-    tiny_toss = function(hTarget, hAbility)
+    tiny_toss = function(self, hTarget, hAbility)
         local search = FindUnitsInRadius(
             self.bot:GetTeam(), 
             self.bot:GetAbsOrigin(), 
@@ -192,28 +212,55 @@ modifier_bot.Decision_Ability = {
             DOTA_UNIT_TARGET_FLAG_NONE, 
             FIND_ANY_ORDER, false)
         if #search > 0 then
-            self:Decision_CastTargetEntity(hTarget, abilityQueued, hTarget)
+            self:Decision_CastTargetEntity(hTarget, hAbility, hTarget)
         else
             self:Decision_AttackTarget(hTarget)
         end
     end,
+
+    earth_spirit_geomagnetic_grip = function(self, hTarget, hAbility)
+        if hTarget:IsHero() and self.bot:GetTeamNumber() ~= hTarget:GetTeamNumber() then
+            self:Decision_AttackTarget(hTarget)
+        else
+            self:Decision_CastTargetEntity(hTarget, hAbility, hTarget)
+        end
+    end,
+
+    furion_force_of_nature = function(self, hTarget, hAbility)
+        self:Decision_Tree(hTarget, hAbility)
+    end,
+    
+    chen_holy_persuasion = function(self, hTarget, hAbility)
+        self:Decision_CastEnemyCreep(hTarget, hAbility)
+    end,
+    doom_bringer_devour = function(self, hTarget, hAbility)
+        self:Decision_CastEnemyCreep(hTarget, hAbility)
+    end,
+    life_stealer_infest = function(self, hTarget, hAbility)
+        self:Decision_CastEnemyCreep(hTarget, hAbility)
+    end,
+    enigma_demonic_conversion = function(self, hTarget, hAbility)
+        self:Decision_CastEnemyCreep(hTarget, hAbility)
+    end,
 }
 
+--
+-- Filters
+--
 modifier_bot.spell_filter_behavior = {
     DOTA_ABILITY_BEHAVIOR_PASSIVE,
     DOTA_ABILITY_BEHAVIOR_ATTACK,
-    DOTA_ABILITY_BEHAVIOR_TOGGLE,
 }
 
 modifier_bot.spell_filter_direct = {
     -- Misc
     "generic_hidden",
 
-    -- Chen
-    "chen_holy_persuasion",
+    -- Mars
+    "mars_bulwark",
 
-    -- Lifestealer
-    "life_stealer_infest",
+    -- Phantom Lancer
+    "phantom_lancer_phantom_edge",
 
     -- Pudge
     "pudge_rot",
@@ -233,8 +280,23 @@ modifier_bot.spell_filter_direct = {
 
     -- Templar
     "templar_assassin_trap",
+
+    -- Underlord
+    "abyssal_underlord_dark_rift",
 }
 
+modifier_bot.cannot_self_target = {
+    -- Spells
+    ["abaddon_death_coil"] = true,
+    ["earth_spirit_boulder_smash"] = true,
+
+    -- Items
+    ["item_sphere"] = true,
+}
+
+--
+-- Search Functions
+--
 function modifier_bot:GetCastableAbilities()
     local abilities = {}
 
@@ -326,17 +388,7 @@ function modifier_bot:GetClosestAlly(notSelfTarget)
 
     if notSelfTarget then
         if #search > 1 then
-            while search[1] == self.bot do
-                search = FindUnitsInRadius(
-                    self.bot:GetTeam(), 
-                    self.bot:GetAbsOrigin(), 
-                    nil, 
-                    FIND_UNITS_EVERYWHERE, 
-                    DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
-                    DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-                    DOTA_UNIT_TARGET_FLAG_NONE, 
-                    FIND_ANY_ORDER, false)
-            end
+            return {search[2]}
         else
             return {}
         end
@@ -358,17 +410,7 @@ function modifier_bot:FindClosestHero(notSelfTarget)
 
     if notSelfTarget then
         if #search > 1 then
-            while search[1] == self.bot do
-                search = FindUnitsInRadius(
-                    self.bot:GetTeam(), 
-                    self.bot:GetAbsOrigin(), 
-                    nil, 
-                    FIND_UNITS_EVERYWHERE, 
-                    DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
-                    DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-                    DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
-                    FIND_ANY_ORDER, false)
-            end
+            return {search[2]}
         else
             return {}
         end
@@ -377,6 +419,30 @@ function modifier_bot:FindClosestHero(notSelfTarget)
     return #search > 0 and search or {} 
 end
 
+function modifier_bot:FindClosestEnemyCreep(hTarget, hAbility)
+    local search = FindUnitsInRadius(
+        self.bot:GetTeam(), 
+        self.bot:GetAbsOrigin(), 
+        nil, 
+        hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), 
+        DOTA_UNIT_TARGET_TEAM_ENEMY, 
+        DOTA_UNIT_TARGET_BASIC, 
+        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
+        FIND_ANY_ORDER, false)
+    
+    for _, creep in pairs(search) do
+        if not creep:IsConsideredHero()
+        then
+            return creep
+        end
+    end
+
+    return nil
+end
+
+--
+-- Hero Progression
+--
 function modifier_bot:SpendAbilityPoints()
     local basic = {self.bot:GetAbilityByIndex(0), self.bot:GetAbilityByIndex(1), self.bot:GetAbilityByIndex(2)}
     local ultimate = self.bot:GetAbilityByIndex(5)
@@ -400,8 +466,8 @@ function modifier_bot:SpendAbilityPoints()
         if basic_chosen:GetLevel() * 2 < level then -- Prevents level 1 abilites from getting levelled up at level 2 and etc.
             self.bot:UpgradeAbility(basic_chosen)
 
-            -- Toggle auto cast
-            if basic_chosen:IsToggle() and not basic_chosen:GetAutoCastState() then
+            -- Turn on the attacks!
+            if HasBit(basic_chosen:GetBehavior(), DOTA_ABILITY_BEHAVIOR_ATTACK) and basic_chosen:GetAutoCastState() == false then
                 basic_chosen:ToggleAutoCast()
             end
         end

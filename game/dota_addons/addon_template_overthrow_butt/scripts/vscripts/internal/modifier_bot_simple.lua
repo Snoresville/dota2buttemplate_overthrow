@@ -3,8 +3,8 @@ modifier_bot_simple = modifier_bot_simple or class({})
 
 function modifier_bot_simple:GetTexture() return "rattletrap_power_cogs" end -- get the icon from a different ability
 
-function modifier_bot_simple:IsPermanent() return false end
-function modifier_bot_simple:RemoveOnDeath() return true end
+function modifier_bot_simple:IsPermanent() return true end
+function modifier_bot_simple:RemoveOnDeath() return false end
 function modifier_bot_simple:IsHidden() return false end 	-- we can hide the modifier
 function modifier_bot_simple:IsDebuff() return false end 	-- make it red or green
 function modifier_bot_simple:AllowIllusionDuplicate() return true end
