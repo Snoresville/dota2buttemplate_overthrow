@@ -70,15 +70,8 @@ function modifier_bot:TargetDecision(hTarget)
         elseif HasBit( abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_TOGGLE) then
             self:Decision_Toggle(hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
-            if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then  -- If it only targets friendlies
-                local ally_search = self:GetClosestAlly(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
-                self:Decision_CastTargetEntity(ally_search[1], abilityQueued, hTarget)
-            elseif abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_BOTH then  -- Pick the closest guy
-                local hero_search = self:FindClosestHero(self.cannot_self_target[abilityQueued:GetAbilityName()] == true)
-                self:Decision_CastTargetEntity(hero_search[1], abilityQueued, hTarget)
-            else
-                self:Decision_CastTargetEntity(hTarget, abilityQueued, hTarget)             -- It's definitely an enemy-only target ability
-            end
+            local search = self:GetClosestUnit(self.cannot_self_target[abilityQueued:GetAbilityName()] == true, abilityQueued)
+            self:Decision_CastTargetEntity(search[1], abilityQueued, hTarget)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
             self:Decision_CastTargetPoint(hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_NO_TARGET) then
@@ -115,7 +108,7 @@ function modifier_bot:Decision_AttackMove(hTarget)
 end
 
 function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
-    if hTarget and hTarget:IsAlive() and (CanCastOnSpellImmune(hAbility) or not hTarget:IsMagicImmune()) then
+    if hTarget and hTarget:IsAlive() and ((CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -159,7 +152,6 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
     end
 
     if tree then
-        print(hAbility:GetAbilityName())
         if HasBit(hAbility:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             ExecuteOrderFromTable({
                 UnitIndex = self.bot:entindex(),
@@ -172,20 +164,6 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
         else
             self:Decision_AttackTarget(hTarget)
         end
-    else
-        self:Decision_AttackTarget(hTarget)
-    end
-end
-
-function modifier_bot:Decision_CastEnemyCreep(hTarget, hAbility)
-    local search = self:FindClosestEnemyCreep(hTarget, hAbility)
-    if search then
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
-            TargetIndex = search:entindex(),
-            AbilityIndex = hAbility:entindex()
-        })
     else
         self:Decision_AttackTarget(hTarget)
     end
@@ -228,19 +206,6 @@ modifier_bot.Decision_Ability = {
 
     furion_force_of_nature = function(self, hTarget, hAbility)
         self:Decision_Tree(hTarget, hAbility)
-    end,
-    
-    chen_holy_persuasion = function(self, hTarget, hAbility)
-        self:Decision_CastEnemyCreep(hTarget, hAbility)
-    end,
-    doom_bringer_devour = function(self, hTarget, hAbility)
-        self:Decision_CastEnemyCreep(hTarget, hAbility)
-    end,
-    life_stealer_infest = function(self, hTarget, hAbility)
-        self:Decision_CastEnemyCreep(hTarget, hAbility)
-    end,
-    enigma_demonic_conversion = function(self, hTarget, hAbility)
-        self:Decision_CastEnemyCreep(hTarget, hAbility)
     end,
 }
 
@@ -375,16 +340,17 @@ function modifier_bot:CanSeeEnemies()
     return #search > 0 and search or false 
 end
 
-function modifier_bot:GetClosestAlly(notSelfTarget)
+function modifier_bot:GetClosestUnit(notSelfTarget, hAbility)
+    local search_radius = (hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_CREEP or hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_BASIC) and (hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus()) or FIND_UNITS_EVERYWHERE
     local search = FindUnitsInRadius(
         self.bot:GetTeam(), 
         self.bot:GetAbsOrigin(), 
         nil, 
-        FIND_UNITS_EVERYWHERE, 
-        DOTA_UNIT_TARGET_TEAM_FRIENDLY, 
-        DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
+        search_radius, 
+        hAbility:GetAbilityTargetTeam(),
+        hAbility:GetAbilityTargetType(), 
         DOTA_UNIT_TARGET_FLAG_NONE, 
-        FIND_ANY_ORDER, false)
+        FIND_CLOSEST, false)
 
     if notSelfTarget then
         if #search > 1 then
@@ -395,49 +361,6 @@ function modifier_bot:GetClosestAlly(notSelfTarget)
     end
 
     return #search > 0 and search or {} 
-end
-
-function modifier_bot:FindClosestHero(notSelfTarget)
-    local search = FindUnitsInRadius(
-        self.bot:GetTeam(), 
-        self.bot:GetAbsOrigin(), 
-        nil, 
-        FIND_UNITS_EVERYWHERE, 
-        DOTA_UNIT_TARGET_TEAM_BOTH, 
-        DOTA_UNIT_TARGET_HERO --[[ + DOTA_UNIT_TARGET_BASIC ]], 
-        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
-        FIND_ANY_ORDER, false)
-
-    if notSelfTarget then
-        if #search > 1 then
-            return {search[2]}
-        else
-            return {}
-        end
-    end
-
-    return #search > 0 and search or {} 
-end
-
-function modifier_bot:FindClosestEnemyCreep(hTarget, hAbility)
-    local search = FindUnitsInRadius(
-        self.bot:GetTeam(), 
-        self.bot:GetAbsOrigin(), 
-        nil, 
-        hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), 
-        DOTA_UNIT_TARGET_TEAM_ENEMY, 
-        DOTA_UNIT_TARGET_BASIC, 
-        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
-        FIND_ANY_ORDER, false)
-    
-    for _, creep in pairs(search) do
-        if not creep:IsConsideredHero()
-        then
-            return creep
-        end
-    end
-
-    return nil
 end
 
 --
