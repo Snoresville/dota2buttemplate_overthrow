@@ -85,9 +85,11 @@ end
 --
 -- Decision Making
 --
+
+-- Attacking
 function modifier_bot:Decision_AttackTarget(hTarget)
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
-    if hTarget:IsAlive() then
+    if hTarget:IsAlive() and not hTarget:IsAttackImmune() then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_ATTACK_TARGET,
@@ -97,7 +99,6 @@ function modifier_bot:Decision_AttackTarget(hTarget)
         self:Decision_AttackMove(hTarget)
     end
 end
-
 function modifier_bot:Decision_AttackMove(hTarget)
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     ExecuteOrderFromTable({
@@ -107,6 +108,7 @@ function modifier_bot:Decision_AttackMove(hTarget)
     })
 end
 
+-- Casting
 function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
     if hTarget and hTarget:IsAlive() and ((CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
@@ -119,7 +121,6 @@ function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
         self:Decision_AttackTarget(hFallback)
     end
 end
-
 function modifier_bot:Decision_CastTargetPoint(hTarget, hAbility)
     ExecuteOrderFromTable({
         UnitIndex = self.bot:entindex(),
@@ -128,7 +129,6 @@ function modifier_bot:Decision_CastTargetPoint(hTarget, hAbility)
         AbilityIndex = hAbility:entindex()
     })
 end
-
 function modifier_bot:Decision_CastTargetNone(hTarget, hAbility)
     if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
         ExecuteOrderFromTable({
@@ -141,6 +141,7 @@ function modifier_bot:Decision_CastTargetNone(hTarget, hAbility)
     end
 end
 
+-- Misc
 function modifier_bot:Decision_Tree(hTarget, hAbility)
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
@@ -168,7 +169,6 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
         self:Decision_AttackTarget(hTarget)
     end
 end
-
 function modifier_bot:Decision_Toggle(hTarget, hAbility)
     -- Turn on the toggles
     if hAbility:IsToggle() and hAbility:GetToggleState() == false then
@@ -177,7 +177,18 @@ function modifier_bot:Decision_Toggle(hTarget, hAbility)
         self:Decision_AttackTarget(hTarget)
     end
 end
+function modifier_bot:Decision_CastTargetPointAlly(hAbility) 
+    local targets = self:GetClosestUnits(hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), DOTA_UNIT_TARGET_TEAM_FRIENDLY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+    local hTarget = targets[math.random(#targets)]
+    ExecuteOrderFromTable({
+        UnitIndex = self.bot:entindex(),
+        OrderType = DOTA_UNIT_ORDER_CAST_POSITION,
+        Position = hTarget:GetAbsOrigin(),
+        AbilityIndex = hAbility:entindex()
+    })
+end
 
+-- Individual abilities
 modifier_bot.Decision_Ability = {
     tiny_toss = function(self, hTarget, hAbility)
         local search = FindUnitsInRadius(
@@ -207,6 +218,10 @@ modifier_bot.Decision_Ability = {
     furion_force_of_nature = function(self, hTarget, hAbility)
         self:Decision_Tree(hTarget, hAbility)
     end,
+
+    arc_warden_magnetic_field = function(self, hTarget, hAbility)
+        self:Decision_CastTargetPointAlly(hAbility)
+    end,
 }
 
 --
@@ -226,9 +241,6 @@ modifier_bot.spell_filter_direct = {
 
     -- Phantom Lancer
     "phantom_lancer_phantom_edge",
-
-    -- Pudge
-    "pudge_rot",
     
     -- Rubick
     "rubick_empty1",
@@ -256,7 +268,9 @@ modifier_bot.cannot_self_target = {
     ["earth_spirit_boulder_smash"] = true,
 
     -- Items
+    ["item_solar_crest"] = true,
     ["item_sphere"] = true,
+    ["pugna_life_drain"] = true,
 }
 
 --
@@ -342,15 +356,7 @@ end
 
 function modifier_bot:GetClosestUnit(notSelfTarget, hAbility)
     local search_radius = (hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_CREEP or hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_BASIC) and (hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus()) or FIND_UNITS_EVERYWHERE
-    local search = FindUnitsInRadius(
-        self.bot:GetTeam(), 
-        self.bot:GetAbsOrigin(), 
-        nil, 
-        search_radius, 
-        hAbility:GetAbilityTargetTeam(),
-        hAbility:GetAbilityTargetType(), 
-        DOTA_UNIT_TARGET_FLAG_NONE, 
-        FIND_CLOSEST, false)
+    local search = self:GetClosestUnits(search_radius, hAbility:GetAbilityTargetTeam(), hAbility:GetAbilityTargetType())
 
     if notSelfTarget then
         if #search > 1 then
@@ -361,6 +367,18 @@ function modifier_bot:GetClosestUnit(notSelfTarget, hAbility)
     end
 
     return #search > 0 and search or {} 
+end
+
+function modifier_bot:GetClosestUnits(search_radius, flags_team, flags_type)
+    return FindUnitsInRadius(
+        self.bot:GetTeam(), 
+        self.bot:GetAbsOrigin(), 
+        nil, 
+        search_radius, 
+        flags_team,
+        flags_type, 
+        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
+        FIND_CLOSEST, false)
 end
 
 --

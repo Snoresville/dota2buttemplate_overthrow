@@ -147,7 +147,7 @@ ListenToGameEvent("npc_spawned", function(keys)
 			unit:AddNewModifier(unit, nil, "modifier_courier_speed", {})
 		end
 
-		if IsServer() and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and not unit:IsRealHero() then
+		if IsServer() and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or unit:IsClone()) then
 			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end
 	end
