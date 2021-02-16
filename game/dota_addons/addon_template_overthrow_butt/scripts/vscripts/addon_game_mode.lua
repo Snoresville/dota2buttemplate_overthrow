@@ -34,7 +34,6 @@ softRequire("settings_misc")
 softRequire("settings_overthrow")
 softRequire("startitems")
 softRequire("thinker")
-require("addon_game_precache")
 
 function Spawn()
 	print("spawn function")
@@ -65,6 +64,9 @@ if COverthrowGameMode == nil then
 	--refer to: http://stackoverflow.com/questions/6586145/lua-require-with-global-local
 end
 
+LinkLuaModifier("overthrow/modifier_core_pumpkin_regeneration", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("overthrow/modifier_core_spawn_movespeed", LUA_MODIFIER_MOTION_NONE)
+
 ---------------------------------------------------------------------------
 -- Required .lua files
 ---------------------------------------------------------------------------
@@ -79,11 +81,15 @@ function Precache( context )
 	FireGameEvent("addon_game_mode_precache",nil)
 	PrecacheResource("soundfile", "soundevents/custom_sounds.vsndevts", context)
 	PrecacheResource("soundfile_folder", "soundevents/game_sounds_heroes", context)
+
+	--[[
 	if soundprecache then
 		for i = 1, #soundprecache do
 			PrecacheResource("soundfile", soundprecache[i], context)
 		end
 	end
+	]]
+	
 	--[[
 		Precache things we know we'll use.  Possible file types include (but not limited to):
 			PrecacheResource( "model", "*.vmdl", context )
@@ -220,6 +226,7 @@ function COverthrowGameMode:InitGameMode()
 	---------------------------------------------------------------------------
 
 	self:GatherAndRegisterValidTeams()
+	self:BuildCoreTeleportNightTargets()
 
 	GameRules:GetGameModeEntity().COverthrowGameMode = self
 
@@ -609,4 +616,72 @@ function CDOTA_BaseNPC_Hero:AddExperienceCustom(xp, reason, applyBotDifficultySc
 		return
 	end
 	self:AddExperience(xp, reason, applyBotDifficultyScaling, incrementTotal)
+end
+
+-- Core Quartet
+local allCoreTeams = {
+	DOTA_TEAM_BADGUYS,
+	DOTA_TEAM_GOODGUYS,
+	DOTA_TEAM_CUSTOM_1,
+	DOTA_TEAM_CUSTOM_2,
+	DOTA_TEAM_CUSTOM_3,
+	DOTA_TEAM_CUSTOM_4,
+}
+
+function COverthrowGameMode:BuildCoreTeleportNightTargets()
+	local combinations = {}
+
+	local function iter(combination)
+		if #combination + 1 <= #allCoreTeams then
+			for _, team in ipairs(allCoreTeams) do
+				if not table.includes(combination, team) then
+					local copy = {}
+					for i, v in ipairs(combination) do copy[i] = v end
+					table.insert(copy, team)
+					iter(copy)
+				end
+			end
+			return
+		end
+
+		local valid = true
+		for i, team in ipairs(combination) do
+			local teamBefore = combination[i == 1 and 6 or i - 1]
+			local teamAfter = combination[i == 6 and 1 or i + 1]
+
+			local idInTeams
+			for coreTeamId, coreTeam in ipairs(allCoreTeams) do
+				if coreTeam == team then
+					idInTeams = coreTeamId
+					break
+				end
+			end
+			local originalTeamBefore = allCoreTeams[idInTeams == 1 and 6 or idInTeams - 1]
+			local originalTeamAfter = allCoreTeams[idInTeams == 6 and 1 or idInTeams + 1]
+
+			if teamBefore == originalTeamBefore or teamBefore == originalTeamAfter or teamAfter == originalTeamBefore or teamAfter == originalTeamAfter then
+				valid = false
+				break
+			end
+		end
+		if valid then
+			table.insert(combinations, combination)
+		end
+	end
+	iter({})
+
+	self.coreTeleportNightTarget = combinations[RandomInt(1, #combinations)]
+end
+
+function COverthrowGameMode:GetCoreTeleportTarget(teamId)
+	if GameRules:IsDaytime() then
+		return Entities:FindByName(nil, "teleport_" .. teamId .. "_day"):GetAbsOrigin()
+	end
+
+	for oldTeamIndex, oldTeam in ipairs(allCoreTeams) do
+		if oldTeam == teamId then
+			local mappedTeam = self.coreTeleportNightTarget[oldTeamIndex]
+			return Entities:FindByName(nil, "teleport_" .. mappedTeam .. "_day"):GetAbsOrigin()
+		end
+	end
 end

@@ -186,7 +186,7 @@
 	"dota_ability_xp_granter"
 	{
 		"BaseClass"          			    "ability_lua"
-		"ScriptFile"						"abilities/xp_granter"
+		"ScriptFile"						"overthrow/xp_granter"
 		"AbilityName"           			"dota_ability_xp_granter"
 		"AbilityBehavior"					"DOTA_ABILITY_BEHAVIOR_PASSIVE"
 
@@ -213,7 +213,7 @@
 	"dota_ability_xp_granter2"
 	{
 		"BaseClass"							"ability_lua"
-		"ScriptFile"						"abilities/xp_granter"
+		"ScriptFile"						"overthrow/xp_granter"
 		"AbilityName"						"dota_ability_xp_granter"
 		"AbilityBehavior"					"DOTA_ABILITY_BEHAVIOR_PASSIVE"
 
@@ -240,7 +240,7 @@
 	"dota_ability_xp_granter3"
 	{
 		"BaseClass"							"ability_lua"
-		"ScriptFile"						"abilities/xp_granter"
+		"ScriptFile"						"overthrow/xp_granter"
 		"AbilityName"						"dota_ability_xp_granter"
 		"AbilityBehavior"					"DOTA_ABILITY_BEHAVIOR_PASSIVE"
 
@@ -267,7 +267,7 @@
 	"dota_ability_xp_global"
 	{
 		"BaseClass"							"ability_lua"
-		"ScriptFile"						"abilities/xp_global"
+		"ScriptFile"						"overthrow/xp_global"
 		"AbilityName"						"dota_ability_xp_global"
 		"AbilityBehavior"					"DOTA_ABILITY_BEHAVIOR_PASSIVE"
 
@@ -289,7 +289,7 @@
 	"dota_ability_xp_core_global"
 	{
 		"BaseClass"							"ability_lua"
-		"ScriptFile"						"abilities/xp_global"
+		"ScriptFile"						"overthrow/xp_global"
 		"AbilityName"						"dota_ability_xp_global"
 		"AbilityBehavior"					"DOTA_ABILITY_BEHAVIOR_PASSIVE"
 

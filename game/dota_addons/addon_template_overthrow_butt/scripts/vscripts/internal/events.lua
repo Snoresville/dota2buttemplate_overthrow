@@ -100,8 +100,7 @@ ListenToGameEvent("game_rules_state_change", function()
 							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 0.1 end
 							local new_hero = PlayerResource:ReplaceHeroWith(playerID, new_hero_name, PlayerResource:GetGold(playerID), 0)
 							new_hero:AddNewModifier(new_hero, nil, "modifier_bot", {})
-							-- local hero = PlayerResource:GetSelectedHeroEntity(playerID)
-							-- hero:AddNewModifier(hero, nil, "modifier_bot", {})
+							PrecacheUnitByNameAsync(new_hero_name, function(...) end)
 						end
 					)
 				end

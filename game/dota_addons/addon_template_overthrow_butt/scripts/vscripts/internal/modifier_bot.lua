@@ -21,6 +21,7 @@ function modifier_bot:OnCreated()
         self.bot = self:GetParent()
         self.bot:SetControllableByPlayer(self.bot:GetPlayerOwnerID(), true)
         self:CreateItemProgression()
+        self.talentlevel = 0
         
         self:StartIntervalThink(0.5)
     end
@@ -50,6 +51,69 @@ function modifier_bot:OnIntervalThink()
     end
 end
 
+--
+-- Main Logic
+--
+function modifier_bot:GetCastableAbilities()
+    local abilities = {}
+
+    -- Base Case
+    if self.bot:IsSilenced() then return abilities end
+    if self.bot:IsIllusion() then return abilities end
+
+    for index = 0,15 do
+		-- Ability in question
+		local ability = self.bot:GetAbilityByIndex(index)
+		
+		-- Ability checkpoint
+		if ability == nil then goto continue end
+        if ability:GetLevel() == 0 then goto continue end
+        if ability:IsHidden() then goto continue end
+        --if --[[HasBit( ability:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET ) and]] HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
+		for _,behaviour in pairs(self.spell_filter_behavior) do
+			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end
+		end
+        if self.spell_filter_direct[ability:GetAbilityName()] then goto continue end
+        if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
+        if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
+        if not ability:IsActivated() then goto continue end
+        if ability:HasCharges() and ability:GetCurrentAbilityCharges() == 0 then goto continue end
+		
+		-- Add that ability after checkpoint
+		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
+		table.insert(abilities, ability)
+		
+		-- Skip
+		::continue::
+	end
+
+    for index = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
+		-- Ability in question
+		local ability = self.bot:GetItemInSlot(index)
+		
+		-- Ability checkpoint
+		if ability == nil then goto continue_item end
+        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue_item end
+		for _,behaviour in pairs(self.spell_filter_behavior) do
+			if HasBit( ability:GetBehavior(), behaviour ) then goto continue_item end
+		end
+		if self.spell_filter_direct[ability:GetAbilityName()] then goto continue_item end
+        if ability:GetCooldownTimeRemaining() ~= 0 then goto continue_item end
+        if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue_item end
+        if not ability:IsActivated() then goto continue_item end
+        if ability:RequiresCharges() and ability:GetCurrentCharges() == 0 then goto continue_item end
+		
+		-- Add that ability after checkpoint
+		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
+		table.insert(abilities, ability)
+		
+		-- Skip
+		::continue_item::
+	end
+
+    return abilities
+end
+
 function modifier_bot:TargetDecision(hTarget)
     local castableAbilities = self:GetCastableAbilities()
     local abilityQueued
@@ -58,7 +122,7 @@ function modifier_bot:TargetDecision(hTarget)
     end
 
     if abilityQueued then
-        print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
+        --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
@@ -146,7 +210,7 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
     for _, tree_check in pairs(trees) do
-        if tree_check and tree_check:IsStanding() then
+        if (tree_check and not tree_check:IsNull()) and tree_check:IsStanding() then
             tree = tree_check
             break
         end
@@ -198,10 +262,19 @@ modifier_bot.Decision_Ability = {
             hAbility:GetSpecialValueFor("grab_radius"), 
             DOTA_UNIT_TARGET_TEAM_BOTH, 
             DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
-            DOTA_UNIT_TARGET_FLAG_NONE, 
+            DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
             FIND_ANY_ORDER, false)
         if #search > 0 then
             self:Decision_CastTargetEntity(hTarget, hAbility, hTarget)
+        else
+            self:Decision_AttackTarget(hTarget)
+        end
+    end,
+
+    templar_assassin_meld = function(self, hTarget, hAbility)
+        local search = self:GetClosestUnits(self.bot:Script_GetAttackRange() * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        if #search > 0 then
+            self:Decision_CastTargetNone(hTarget, hAbility)
         else
             self:Decision_AttackTarget(hTarget)
         end
@@ -222,6 +295,14 @@ modifier_bot.Decision_Ability = {
     arc_warden_magnetic_field = function(self, hTarget, hAbility)
         self:Decision_CastTargetPointAlly(hAbility)
     end,
+
+    ember_spirit_activate_fire_remnant = function(self, hTarget, hAbility)
+        if self.bot:HasModifier("modifier_ember_spirit_fire_remnant_timer") then
+            self:Decision_CastTargetPoint(hTarget, hAbility)
+        else
+            self:Decision_AttackTarget(hTarget)
+        end
+    end,
 }
 
 --
@@ -233,113 +314,61 @@ modifier_bot.spell_filter_behavior = {
 }
 
 modifier_bot.spell_filter_direct = {
+    -- Items
+    ["item_radiance"] = true,
+
     -- Misc
-    "generic_hidden",
+    ["generic_hidden"] = true,
+
+    -- Hoodwink
+    ["hoodwink_sharpshooter_release"] = true,
+
+    -- Keeper of the Light
+    ["keeper_of_the_light_illuminate_end"] = true,
 
     -- Mars
-    "mars_bulwark",
+    ["mars_bulwark"] = true,
 
     -- Phantom Lancer
-    "phantom_lancer_phantom_edge",
+    ["phantom_lancer_phantom_edge"] = true,
     
     -- Rubick
-    "rubick_empty1",
-    "rubick_empty2",
-    "rubick_hidden1",
-    "rubick_hidden2",
-    "rubick_hidden3",
+    ["rubick_empty1"] = true,
+    ["rubick_empty2"] = true,
+    ["rubick_hidden1"] = true,
+    ["rubick_hidden2"] = true,
+    ["rubick_hidden3"] = true,
 
     -- Shadow Demon
-    "shadow_demon_shadow_poison_release",
+    ["shadow_demon_shadow_poison_release"] = true,
 
     -- Spectre
-    "spectre_reality",
+    ["spectre_reality"] = true,
 
     -- Templar
-    "templar_assassin_trap",
+    ["templar_assassin_trap"] = true,
 
     -- Underlord
-    "abyssal_underlord_dark_rift",
+    ["abyssal_underlord_cancel_dark_rift"] = true,
 }
 
 modifier_bot.cannot_self_target = {
     -- Spells
     ["abaddon_death_coil"] = true,
     ["earth_spirit_boulder_smash"] = true,
+    ["pugna_life_drain"] = true,
+    ["necrolyte_death_seeker"] = true,
 
     -- Items
+    ["item_medallion_of_courage"] = true,
     ["item_solar_crest"] = true,
     ["item_sphere"] = true,
-    ["pugna_life_drain"] = true,
+    ["item_shadow_amulet"] = true,
 }
 
 --
 -- Search Functions
 --
-function modifier_bot:GetCastableAbilities()
-    local abilities = {}
-
-    -- Base Case
-    if self.bot:IsSilenced() then return abilities end
-    if self.bot:IsIllusion() then return abilities end
-
-    for index = 0,15 do
-		-- Ability in question
-		local ability = self.bot:GetAbilityByIndex(index)
-		
-		-- Ability checkpoint
-		if ability == nil then goto continue end
-        if ability:GetLevel() == 0 then goto continue end
-        if ability:IsHidden() then goto continue end
-        --if --[[HasBit( ability:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET ) and]] HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
-		for _,behaviour in pairs(self.spell_filter_behavior) do
-			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end
-		end
-		for _,bannedAbility in pairs(self.spell_filter_direct) do
-			if ability:GetAbilityName() == bannedAbility then goto continue end
-		end
-        if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
-        if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
-        if not ability:IsActivated() then goto continue end
-        if ability:HasCharges() and ability:GetCurrentAbilityCharges() == 0 then goto continue end
-		
-		-- Add that ability after checkpoint
-		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
-		table.insert(abilities, ability)
-		
-		-- Skip
-		::continue::
-	end
-
-    for index = DOTA_ITEM_SLOT_1, DOTA_ITEM_SLOT_6 do
-		-- Ability in question
-		local ability = self.bot:GetItemInSlot(index)
-		
-		-- Ability checkpoint
-		if ability == nil then goto continue_item end
-        if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue_item end
-		for _,behaviour in pairs(self.spell_filter_behavior) do
-			if HasBit( ability:GetBehavior(), behaviour ) then goto continue_item end
-		end
-		for _,bannedAbility in pairs(self.spell_filter_direct) do
-			if ability:GetAbilityName() == bannedAbility then goto continue_item end
-		end
-        if ability:GetCooldownTimeRemaining() ~= 0 then goto continue_item end
-        if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue_item end
-        if not ability:IsActivated() then goto continue_item end
-        if ability:RequiresCharges() and ability:GetCurrentCharges() == 0 then goto continue_item end
-		
-		-- Add that ability after checkpoint
-		--print(ability:GetAbilityName(), "Cooldown: " .. ability:GetCooldownTimeRemaining())
-		table.insert(abilities, ability)
-		
-		-- Skip
-		::continue_item::
-	end
-
-    return abilities
-end
-
 function modifier_bot:CanSeeEnemies()
     local search = FindUnitsInRadius(
         self.bot:GetTeam(), 
@@ -395,7 +424,9 @@ function modifier_bot:SpendAbilityPoints()
     end
 
     -- Upgrade Talent
-    if level % 5 == 0 and level >= 10 then
+    if level >= (2 + (self.talentlevel or 0)) * 5 and level < 30 then
+        self.talentlevel = (self.talentlevel or 0) + 1
+
         local talent_bar = level / 5
         local talents = {self.bot:GetAbilityByIndex(2 + 2 * talent_bar), self.bot:GetAbilityByIndex(3 + 2 * talent_bar)}
         self.bot:UpgradeAbility(talents[math.random(2)])
