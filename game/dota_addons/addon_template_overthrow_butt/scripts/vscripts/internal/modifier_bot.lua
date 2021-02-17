@@ -259,7 +259,7 @@ modifier_bot.Decision_Ability = {
             self.bot:GetTeam(), 
             self.bot:GetAbsOrigin(), 
             nil, 
-            hAbility:GetSpecialValueFor("grab_radius"), 
+            hAbility:GetSpecialValueFor("grab_radius") * 0.7, 
             DOTA_UNIT_TARGET_TEAM_BOTH, 
             DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
             DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
@@ -274,6 +274,14 @@ modifier_bot.Decision_Ability = {
     templar_assassin_meld = function(self, hTarget, hAbility)
         local search = self:GetClosestUnits(self.bot:Script_GetAttackRange() * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
         if #search > 0 then
+            self:Decision_CastTargetNone(hTarget, hAbility)
+        else
+            self:Decision_AttackTarget(hTarget)
+        end
+    end,
+
+    hoodwink_scurry = function(self, hTarget, hAbility)
+        if not self.bot:HasModifier("modifier_hoodwink_scurry_active") then
             self:Decision_CastTargetNone(hTarget, hAbility)
         else
             self:Decision_AttackTarget(hTarget)

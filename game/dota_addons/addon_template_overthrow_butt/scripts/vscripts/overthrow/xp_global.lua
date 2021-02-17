@@ -6,7 +6,7 @@ dota_ability_xp_core_global = {
 }
 
 
-LinkLuaModifier("modifier_dota_ability_xp_global", "abilities/xp_global", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_dota_ability_xp_global", "overthrow/xp_global", LUA_MODIFIER_MOTION_NONE)
 modifier_dota_ability_xp_global = {
 	IsHidden = function() return true end,
 	IsAura = function() return GameRules:GetDOTATime(false, true) > 0 end,
@@ -30,11 +30,11 @@ function modifier_dota_ability_xp_global:CheckState()
 	}
 end
 
-LinkLuaModifier("modifier_dota_ability_xp_core_global", "abilities/xp_global", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_dota_ability_xp_core_global", "overthrow/xp_global", LUA_MODIFIER_MOTION_NONE)
 modifier_dota_ability_xp_core_global = class(modifier_dota_ability_xp_global)
 modifier_dota_ability_xp_core_global.GetModifierAura = function() return "modifier_get_xp_core_global" end
 
-LinkLuaModifier("modifier_get_xp_global", "abilities/xp_global", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_get_xp_global", "overthrow/xp_global", LUA_MODIFIER_MOTION_NONE)
 modifier_get_xp_global = {
 	IsDebuff = function() return false end,
 	GetTexture = function() return "alchemist_goblins_greed" end,
@@ -58,7 +58,7 @@ function modifier_get_xp_global:OnIntervalThink()
 	end
 end
 
-LinkLuaModifier("modifier_get_xp_core_global", "abilities/xp_global", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_get_xp_core_global", "overthrow/xp_global", LUA_MODIFIER_MOTION_NONE)
 modifier_get_xp_core_global = class(modifier_get_xp_global)
 function modifier_get_xp_core_global:IsHidden()
 	return self:GetParent():HasModifier("modifier_get_xp")
