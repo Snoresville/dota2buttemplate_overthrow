@@ -337,8 +337,8 @@ end
 ---------------------------------------------------------------------------
 function COverthrowGameMode:SetUpFountains()
 
-	LinkLuaModifier( "modifier_fountain_aura_lua", LUA_MODIFIER_MOTION_NONE )
-	LinkLuaModifier( "modifier_fountain_aura_effect_lua", LUA_MODIFIER_MOTION_NONE )
+	LinkLuaModifier( "overthrow/modifier_fountain_aura_lua", LUA_MODIFIER_MOTION_NONE )
+	LinkLuaModifier( "overthrow/modifier_fountain_aura_effect_lua", LUA_MODIFIER_MOTION_NONE )
 
 	local fountainEntities = Entities:FindAllByClassname( "ent_dota_fountain")
 	for _,fountainEnt in pairs( fountainEntities ) do
