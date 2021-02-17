@@ -337,6 +337,9 @@ modifier_bot.spell_filter_direct = {
     -- Mars
     ["mars_bulwark"] = true,
 
+    -- Naga Siren
+    ["naga_siren_song_of_the_siren_cancel"] = true,
+
     -- Phantom Lancer
     ["phantom_lancer_phantom_edge"] = true,
     

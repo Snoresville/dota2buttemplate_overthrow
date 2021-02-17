@@ -29,11 +29,13 @@ require("internal/xp_modifier")
 
 --softRequire("events") Already required by the original game mode
 softRequire("filters")
+softRequire("settings_overthrow")
 softRequire("settings_butt")
 softRequire("settings_misc")
-softRequire("settings_overthrow")
 softRequire("startitems")
 softRequire("thinker")
+
+require("internal/bot_listener")
 
 function Spawn()
 	print("spawn function")
