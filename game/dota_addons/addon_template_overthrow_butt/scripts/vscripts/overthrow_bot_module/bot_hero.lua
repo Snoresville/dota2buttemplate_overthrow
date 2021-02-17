@@ -19,11 +19,17 @@ end
 function modifier_bot:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
-        self.bot:SetControllableByPlayer(self.bot:GetPlayerOwnerID(), true)
-        self:CreateItemProgression()
-        self.talentlevel = 0
+        for ID = 1, PlayerResource:GetPlayerCount() do
+            self.bot:SetControllableByPlayer(ID - 1, false)
+        end
         
-        self:StartIntervalThink(0.5)
+        self:CreateItemProgression()
+
+        -- Default Values
+        self.talentlevel = 0
+        self.invoker_orb_casts = 0
+        
+        self:StartIntervalThink(0.2)
     end
 end
 
@@ -212,7 +218,7 @@ function modifier_bot:Decision_Tree(hTarget, hAbility)
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
     for _, tree_check in pairs(trees) do
-        if (tree_check and not tree_check:IsNull()) and tree_check:IsStanding() then
+        if (tree_check and not tree_check:IsNull()) and tree_check.IsStanding and tree_check:IsStanding() then
             tree = tree_check
             break
         end
@@ -282,6 +288,15 @@ modifier_bot.Decision_Ability = {
         end
     end,
 
+    rattletrap_power_cogs = function(self, hTarget, hAbility)
+        local search = self:GetClosestUnits(hAbility:GetSpecialValueFor("cogs_radius") * 0.75, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        if #search > 0 then
+            self:Decision_CastTargetNone(hTarget, hAbility)
+        else
+            self:Decision_AttackTarget(hTarget)
+        end
+    end,
+
     hoodwink_scurry = function(self, hTarget, hAbility)
         if not self.bot:HasModifier("modifier_hoodwink_scurry_active") then
             self:Decision_CastTargetNone(hTarget, hAbility)
@@ -315,6 +330,25 @@ modifier_bot.Decision_Ability = {
         end
         self:Decision_CastTargetEntity(search_target, hAbility, hTarget)
     end,
+
+    invoker_invoke = function(self, hTarget, hAbility)
+        local orbs = {}
+        for i = 0, 2 do
+            if self.bot:GetAbilityByIndex(i):GetLevel() > 0 then
+                table.insert(orbs, self.bot:GetAbilityByIndex(i))
+            end
+        end
+
+        if #orbs == 0 then 
+            self:Decision_AttackTarget(hTarget)
+        elseif self.invoker_orb_casts < 3 or RollPercentage(20) then
+            self.invoker_orb_casts = self.invoker_orb_casts + 1
+            self:Decision_CastTargetNone(hTarget, orbs[math.random(#orbs)])
+        else
+            self.invoker_orb_casts = 0
+            self:Decision_CastTargetNone(hTarget, hAbility)
+        end
+    end,
 }
 
 --
@@ -328,12 +362,21 @@ modifier_bot.spell_filter_behavior = {
 modifier_bot.spell_filter_direct = {
     -- Items
     ["item_radiance"] = true,
+    ["item_hurricane_pike"] = true,
 
     -- Misc
     ["generic_hidden"] = true,
 
+    -- Elder Titan
+    ["elder_titan_return_spirit"] = true,
+
     -- Hoodwink
     ["hoodwink_sharpshooter_release"] = true,
+
+    -- Invoker
+    ["invoker_quas"] = true,
+    ["invoker_wex"] = true,
+    ["invoker_exort"] = true,
 
     -- Keeper of the Light
     ["keeper_of_the_light_illuminate_end"] = true,
