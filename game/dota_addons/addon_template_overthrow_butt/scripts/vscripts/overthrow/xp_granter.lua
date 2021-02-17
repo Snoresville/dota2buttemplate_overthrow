@@ -10,7 +10,7 @@ dota_ability_xp_granter3 = {
 	GetIntrinsicModifierName = function() return "modifier_dota_ability_xp_granter" end
 }
 
-LinkLuaModifier("modifier_dota_ability_xp_granter", "overthrow/xp_granter", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_dota_ability_xp_granter", "abilities/xp_granter", LUA_MODIFIER_MOTION_NONE)
 modifier_dota_ability_xp_granter = {
 	IsHidden = function() return true end,
 	IsAura = function() return true end,
@@ -32,7 +32,7 @@ function modifier_dota_ability_xp_granter:CheckState()
 end
 
 
-LinkLuaModifier("modifier_get_xp", "overthrow/xp_granter", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_get_xp", "abilities/xp_granter", LUA_MODIFIER_MOTION_NONE)
 modifier_get_xp = {
 	IsDebuff = function() return false end,
 	GetTexture = function() return "custom_games_xp_coin" end
