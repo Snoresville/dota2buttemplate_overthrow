@@ -1,5 +1,5 @@
 pendulum_trap = class({})
-LinkLuaModifier( "modifier_pendulum_trap_lua", "overthrow/modifier_pendulum_trap_lua", LUA_MODIFIER_MOTION_NONE )
+LinkLuaModifier( "modifier_pendulum_trap_lua", LUA_MODIFIER_MOTION_NONE )
 
 --------------------------------------------------------------------------------
 
