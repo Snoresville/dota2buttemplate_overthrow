@@ -154,12 +154,4 @@
 		"ItemKillable"					"0"
 		"ItemCastOnPickup"				"1"
 	}
-
-	"item_core_pumpkin"
-	{
-		"BaseClass"						"item_bag_of_gold"
-		"Model"							"models/props_gameplay/pumpkin_rune.vmdl"
-		"ItemPurchasable"				"0"
-		"ItemCastOnPickup"				"1"
-	}
 }

@@ -75,7 +75,7 @@
 		{
 			"RunScript"
 			{
-				"ScriptFile"			"overthrow/overboss.lua"
+				"ScriptFile"			"overboss.lua"
 				"Function"				"ThrowCoin"
 			}
 		}
@@ -110,7 +110,7 @@
 		{
 			"RunScript"
 			{
-				"ScriptFile"			"overthrow/overboss.lua"
+				"ScriptFile"			"overboss.lua"
 				"Function"				"ThrowCoin"
 			}
 		}
@@ -583,7 +583,7 @@
 	"spike_trap"
 	{
 		"BaseClass"           			"ability_lua"
-		"ScriptFile"					"overthrow/spike_trap"
+		"ScriptFile"					"spike_trap"
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE"				   
 
 		// Casting

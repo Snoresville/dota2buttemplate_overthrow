@@ -332,15 +332,3 @@ function COverthrowGameMode:ForceSpawnGold()
 	self:SpawnGold()
 end
 
-function COverthrowGameMode:ThinkPumpkins()
-	local now = GameRules:GetDOTATime(false, false)
-	for _, spawner in ipairs(self.pumpkin_spawns) do
-		if not spawner.itemIndex and now >= spawner.nextSpawn then
-			local item = CreateItem("item_core_pumpkin", nil, nil)
-			spawner.itemIndex = item:GetEntityIndex()
-			local container = CreateItemOnPositionForLaunch(spawner.position, item)
-			ParticleManager:CreateParticle("particles/items3_fx/fish_bones_active.vpcf", PATTACH_ABSORIGIN, container)
-			item:LaunchLootInitialHeight(false, 0, 0, 0.5, spawner.position)
-		end
-	end
-end
