@@ -66,8 +66,8 @@ if COverthrowGameMode == nil then
 	--refer to: http://stackoverflow.com/questions/6586145/lua-require-with-global-local
 end
 
-LinkLuaModifier("overthrow/modifier_core_pumpkin_regeneration", LUA_MODIFIER_MOTION_NONE)
-LinkLuaModifier("overthrow/modifier_core_spawn_movespeed", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_core_pumpkin_regeneration", "overthrow/modifier_core_pumpkin_regeneration", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_core_spawn_movespeed", "overthrow/modifier_core_spawn_movespeed", LUA_MODIFIER_MOTION_NONE)
 
 ---------------------------------------------------------------------------
 -- Required .lua files
