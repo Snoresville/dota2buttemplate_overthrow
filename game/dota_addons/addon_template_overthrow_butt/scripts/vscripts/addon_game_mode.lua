@@ -322,6 +322,14 @@ function COverthrowGameMode:InitGameMode()
 			WaypointName = "camp"..i.."_path_wp1"
 		}
 	end
+
+	self.pumpkin_spawns = {}
+	for _, entity in ipairs(Entities:FindAllByName("item_pumpkin_spawn")) do
+		table.insert(self.pumpkin_spawns, {
+			position = entity:GetAbsOrigin(),
+			nextSpawn = 0
+		})
+	end
 end
 
 ---------------------------------------------------------------------------
@@ -488,6 +496,7 @@ function COverthrowGameMode:OnThink()
 		--Spawn Gold Bags
 		COverthrowGameMode:ThinkGoldDrop()
 		COverthrowGameMode:ThinkSpecialItemDrop()
+		COverthrowGameMode:ThinkPumpkins()
 	end
 
 	return 1
