@@ -64,8 +64,8 @@ if COverthrowGameMode == nil then
 	--refer to: http://stackoverflow.com/questions/6586145/lua-require-with-global-local
 end
 
-LinkLuaModifier("overthrow/modifier_core_pumpkin_regeneration", LUA_MODIFIER_MOTION_NONE)
-LinkLuaModifier("overthrow/modifier_core_spawn_movespeed", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_core_pumpkin_regeneration", "overthrow/modifier_core_pumpkin_regeneration", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_core_spawn_movespeed", "overthrow/modifier_core_spawn_movespeed", LUA_MODIFIER_MOTION_NONE)
 
 ---------------------------------------------------------------------------
 -- Required .lua files
@@ -337,8 +337,8 @@ end
 ---------------------------------------------------------------------------
 function COverthrowGameMode:SetUpFountains()
 
-	LinkLuaModifier( "overthrow/modifier_fountain_aura_lua", LUA_MODIFIER_MOTION_NONE )
-	LinkLuaModifier( "overthrow/modifier_fountain_aura_effect_lua", LUA_MODIFIER_MOTION_NONE )
+	LinkLuaModifier( "modifier_fountain_aura_lua", "overthrow/modifier_fountain_aura_lua", LUA_MODIFIER_MOTION_NONE )
+	LinkLuaModifier( "modifier_fountain_aura_effect_lua", "overthrow/modifier_fountain_aura_effect_lua", LUA_MODIFIER_MOTION_NONE )
 
 	local fountainEntities = Entities:FindAllByClassname( "ent_dota_fountain")
 	for _,fountainEnt in pairs( fountainEntities ) do
