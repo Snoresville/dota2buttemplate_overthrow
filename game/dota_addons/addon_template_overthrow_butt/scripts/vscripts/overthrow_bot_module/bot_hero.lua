@@ -176,7 +176,7 @@ end
 
 -- Casting
 function modifier_bot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
-    if hTarget and hTarget:IsAlive() and ((CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
+    if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -309,9 +309,9 @@ modifier_bot.Decision_Ability = {
     pugna_life_drain = function(self, hTarget, hAbility)
         local search_target
         if RollPercentage(80) then
-            search_target = self:GetClosestUnits(FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())
+            search_target = self:GetClosestUnits(FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())[1]
         else
-            search_target = self:GetClosestUnit(true, hAbility)
+            search_target = self:GetClosestUnit(true, hAbility)[1]
         end
         self:Decision_CastTargetEntity(search_target, hAbility, hTarget)
     end,
@@ -371,6 +371,10 @@ modifier_bot.spell_filter_direct = {
 
     -- Underlord
     ["abyssal_underlord_cancel_dark_rift"] = true,
+
+    -- Wisp
+    ["wisp_spirits_in"] = true,
+    ["wisp_spirits_out"] = true,
 }
 
 modifier_bot.cannot_self_target = {
@@ -473,10 +477,9 @@ function modifier_bot:ShopForItems()
 
     local target_item = self.item_progression[1]
 
-    if ItemName_GetGoldCost(target_item) <= self.bot:GetGold() then
-        --print(self.bot:GetUnitName().." purchases "..target_item, "price: "..ItemName_GetGoldCost(target_item))
+    if OverthrowBot:ItemName_GetGoldCost(target_item) <= self.bot:GetGold() then
         self.bot:AddItemByName(target_item)
-        self.bot:SpendGold(ItemName_GetGoldCost(target_item), DOTA_ModifyGold_PurchaseItem)
+        self.bot:SpendGold(OverthrowBot:ItemName_GetGoldCost(target_item), DOTA_ModifyGold_PurchaseItem)
         table.remove(self.item_progression, 1)
     end
 end
@@ -559,5 +562,5 @@ function modifier_bot:CreateItemProgression()
     table.insert(full_slots, "item_ultimate_scepter_2")
     table.insert(full_slots, "item_aghanims_shard")
 
-    self.item_progression = GetAllBuildComponents(full_slots)
+    self.item_progression = OverthrowBot:GetAllBuildComponents(full_slots)
 end

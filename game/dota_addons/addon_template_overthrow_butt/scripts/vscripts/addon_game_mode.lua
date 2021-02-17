@@ -147,8 +147,6 @@ function Activate()
 	COverthrowGameMode:InitGameMode()
 	-- Custom Spawn
 	COverthrowGameMode:CustomSpawnCamps()
-
-	InitialiseRandom()
 	
 	FireGameEvent("addon_game_mode_activate",nil)
 	-- GameRules.GameMode = GameMode()
