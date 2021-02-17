@@ -25,6 +25,6 @@ function OnStartTouch(args)
 	end
 
 	unit:RemoveModifierByName("modifier_core_spawn_movespeed")
-	unit:AddNewModifier(unit, nil, "modifier_core_spawn_movespeed", { xp = isMainHero })
-	unit:AddNewModifier(unit, xpGranterAbility, "modifier_invisible", { duration = 15 })
+	unit:AddNewModifier(unit, nil, "modifier_core_spawn_movespeed", { duration = 15 })
+	unit:AddNewModifier(unit, nil, "modifier_invisible", { duration = 15 })
 end

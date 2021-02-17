@@ -45,8 +45,6 @@
 						</Panel>
 						<Panel class="SettingsGroup w-31">
 								<Label class="SettingsGroupTitle" text="Economy"/>
-								<ToggleButton id="TEAM_COUNT_COMPENSATION" class="SettingsItem" text="Team Count Compensation"
-															onactivate="onPanelChange('TEAM_COUNT_COMPENSATION')"/>
 								<Panel class="SettingsItem TextEntryFrame">
 										<TextEntry onfocus="onfocus('XP_GAIN_PERCENTAGE')"
 																oninputsubmit="onPanelChange('XP_GAIN_PERCENTAGE')"
@@ -101,20 +99,6 @@
 										<Label text="Passive XP Per Minute" class="TextEntryLabel"/>
 								</Panel>
 								<Panel class="SettingsItem TextEntryFrame">
-										<TextEntry onfocus="onfocus('SHARED_GOLD_PERCENTAGE')"
-																oninputsubmit="onPanelChange('SHARED_GOLD_PERCENTAGE')"
-																onblur="onPanelChange('SHARED_GOLD_PERCENTAGE')" id="SHARED_GOLD_PERCENTAGE"
-																class="SettingsItem" maxchars="5" unit="%"/>
-										<Label text="Shared Gold" class="TextEntryLabel"/>
-								</Panel>
-								<Panel class="SettingsItem TextEntryFrame">
-										<TextEntry onfocus="onfocus('SHARED_XP_PERCENTAGE')"
-																oninputsubmit="onPanelChange('SHARED_XP_PERCENTAGE')"
-																onblur="onPanelChange('SHARED_XP_PERCENTAGE')" id="SHARED_XP_PERCENTAGE"
-																class="SettingsItem" maxchars="5" unit="%"/>
-										<Label text="Shared XP" class="TextEntryLabel"/>
-								</Panel>
-								<Panel class="SettingsItem TextEntryFrame">
 									<TextEntry onfocus="onfocus('BONUS_COURIER_SPEED')"
 												oninputsubmit="onPanelChange('BONUS_COURIER_SPEED')"
 												onblur="onPanelChange('BONUS_COURIER_SPEED')" id="BONUS_COURIER_SPEED"
@@ -128,6 +112,11 @@
 												class="SettingsItem" maxchars="5" unit="min" />
 									<Label text="Time until Aghanim Shard" class="TextEntryLabel"/>
 								</Panel>
+						</Panel>
+						<Panel class="SettingsGroup w-31">
+								<Label class="SettingsGroupTitle" text="Overthrow Exclusive"/>
+								<ToggleButton id="TEAM_COUNT_COMPENSATION" class="SettingsItem" text="Team Count Compensation"
+															onactivate="onPanelChange('TEAM_COUNT_COMPENSATION')"/>
 								<ToggleButton id="USE_BOTS" class="SettingsItem" text="Fill teams with Bots"
 															onactivate="onPanelChange('USE_BOTS')"/>
 						</Panel>

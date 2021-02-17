@@ -35,7 +35,7 @@ softRequire("settings_misc")
 softRequire("startitems")
 softRequire("thinker")
 
-require("internal/bot_listener")
+require("overthrow_bot_module/bot_main")
 
 function Spawn()
 	print("spawn function")
@@ -82,7 +82,6 @@ require( "utility_functions" )
 function Precache( context )
 	FireGameEvent("addon_game_mode_precache",nil)
 	PrecacheResource("soundfile", "soundevents/custom_sounds.vsndevts", context)
-	PrecacheResource("soundfile_folder", "soundevents/game_sounds_heroes", context)
 
 	--[[
 	if soundprecache then

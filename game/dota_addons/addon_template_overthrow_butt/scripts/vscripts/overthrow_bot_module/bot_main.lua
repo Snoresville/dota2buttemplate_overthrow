@@ -1,15 +1,13 @@
-LinkLuaModifier("modifier_bot", "internal/modifier_bot.lua", LUA_MODIFIER_MOTION_NONE)
-LinkLuaModifier("modifier_bot_simple", "internal/modifier_bot_simple.lua", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_bot", "overthrow_bot_module/bot_hero.lua", LUA_MODIFIER_MOTION_NONE)
+LinkLuaModifier("modifier_bot_simple", "overthrow_bot_module/bot_unit.lua", LUA_MODIFIER_MOTION_NONE)
 
 ListenToGameEvent("game_rules_state_change", function()
-    if BUTTINGS.USE_BOTS == 0 then return end
+    if BUTTINGS and BUTTINGS.USE_BOTS == 0 then return end
     local state = GameRules:State_Get()
 	
     if state == DOTA_GAMERULES_STATE_HERO_SELECTION then
 		-- Added delay to get the bots in
-		if 1 == BUTTINGS.USE_BOTS then
-			GameRules:SetStrategyTime( 10.0 )
-		end
+		GameRules:SetStrategyTime( 10.0 )
 	end
 
 	if state == DOTA_GAMERULES_STATE_STRATEGY_TIME then

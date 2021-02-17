@@ -1,7 +1,7 @@
 modifier_bot = modifier_bot or class({})
 
 
-function modifier_bot:GetTexture() return "rattletrap_power_cogs" end -- get the icon from a different ability
+function modifier_bot:GetTexture() return "tinker_rearm" end -- get the icon from a different ability
 
 function modifier_bot:IsPermanent() return true end
 function modifier_bot:RemoveOnDeath() return false end
@@ -34,7 +34,9 @@ function modifier_bot:OnIntervalThink()
     self:ShopForItems()
     if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
 
+    -- Cannot be ordered
     if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
+    if self.bot:IsCommandRestricted() then return end           -- Can't really do anything now huh
 
     -- Search before moving
     local search = self:CanSeeEnemies()                         
@@ -259,12 +261,12 @@ modifier_bot.Decision_Ability = {
             self.bot:GetTeam(), 
             self.bot:GetAbsOrigin(), 
             nil, 
-            hAbility:GetSpecialValueFor("grab_radius") * 0.7, 
+            hAbility:GetSpecialValueFor("grab_radius") * 0.9, 
             DOTA_UNIT_TARGET_TEAM_BOTH, 
             DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
             DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
             FIND_ANY_ORDER, false)
-        if #search > 0 then
+        if #search > 1 then
             self:Decision_CastTargetEntity(hTarget, hAbility, hTarget)
         else
             self:Decision_AttackTarget(hTarget)
@@ -288,14 +290,6 @@ modifier_bot.Decision_Ability = {
         end
     end,
 
-    earth_spirit_geomagnetic_grip = function(self, hTarget, hAbility)
-        if hTarget:IsHero() and self.bot:GetTeamNumber() ~= hTarget:GetTeamNumber() then
-            self:Decision_AttackTarget(hTarget)
-        else
-            self:Decision_CastTargetEntity(hTarget, hAbility, hTarget)
-        end
-    end,
-
     furion_force_of_nature = function(self, hTarget, hAbility)
         self:Decision_Tree(hTarget, hAbility)
     end,
@@ -310,6 +304,16 @@ modifier_bot.Decision_Ability = {
         else
             self:Decision_AttackTarget(hTarget)
         end
+    end,
+
+    pugna_life_drain = function(self, hTarget, hAbility)
+        local search_target
+        if RollPercentage(80) then
+            search_target = self:GetClosestUnits(FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())
+        else
+            search_target = self:GetClosestUnit(true, hAbility)
+        end
+        self:Decision_CastTargetEntity(search_target, hAbility, hTarget)
     end,
 }
 
@@ -340,8 +344,14 @@ modifier_bot.spell_filter_direct = {
     -- Naga Siren
     ["naga_siren_song_of_the_siren_cancel"] = true,
 
+    -- Pangolier
+    ["pangolier_gyroshell_stop"] = true,
+
     -- Phantom Lancer
     ["phantom_lancer_phantom_edge"] = true,
+
+    -- Phoenix
+    ["phoenix_sun_ray_stop"] = true,
     
     -- Rubick
     ["rubick_empty1"] = true,
@@ -367,14 +377,15 @@ modifier_bot.cannot_self_target = {
     -- Spells
     ["abaddon_death_coil"] = true,
     ["earth_spirit_boulder_smash"] = true,
-    ["pugna_life_drain"] = true,
     ["necrolyte_death_seeker"] = true,
+    ["earth_spirit_geomagnetic_grip"] = true,
 
     -- Items
     ["item_medallion_of_courage"] = true,
     ["item_solar_crest"] = true,
     ["item_sphere"] = true,
     ["item_shadow_amulet"] = true,
+    ["item_ethereal_blade"] = true,
 }
 
 --
