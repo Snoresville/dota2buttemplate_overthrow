@@ -272,7 +272,7 @@ modifier_bot.Decision_Ability = {
     end,
 
     templar_assassin_meld = function(self, hTarget, hAbility)
-        local search = self:GetClosestUnits(self.bot:Script_GetAttackRange() * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        local search = self:GetClosestUnits(self.bot:Script_GetAttackRange() * 0.8, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
         if #search > 0 then
             self:Decision_CastTargetNone(hTarget, hAbility)
         else
