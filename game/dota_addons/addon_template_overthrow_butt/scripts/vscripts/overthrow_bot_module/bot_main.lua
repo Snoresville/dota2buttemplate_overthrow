@@ -110,28 +110,6 @@ end
 -- Bot Modifier Script
 --
 
-function OverthrowBot:OnIntervalThink()
-    if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
-
-    -- Bot improvement
-    self:ShopForItems()
-    if self.bot.GetAbilityPoints and self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
-
-    -- Cannot be ordered
-    if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
-    if self.bot:IsCommandRestricted() then return end           -- Can't really do anything now huh
-
-    -- Search before moving
-    local search = self:CanSeeEnemies()                         
-
-    if search then                                              -- Bot can see at least one enemy
-        self:TargetDecision(search[1])
-    else                                                        -- Default move to arena
-        if self.bot:IsAttacking() then return end
-        self:Decision_GatherAtCenter()
-    end
-end
-
 function CDOTA_Modifier_Lua:GetCastableAbilities()
     local abilities = {}
 
@@ -243,19 +221,11 @@ function CDOTA_Modifier_Lua:Decision_AttackTarget(hTarget)
 end
 function CDOTA_Modifier_Lua:Decision_AttackMove(hTarget)
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
-    if self.bot:HasMovementCapability() then
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
-            Position = hTarget:GetAbsOrigin()
-        })
-    elseif self.bot:GetRangeToUnit(hTarget) <= self.bot:Script_GetAttackRange() then
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_ATTACK_TARGET,
-            TargetIndex = hTarget:entindex(),
-        })
-    end
+    ExecuteOrderFromTable({
+        UnitIndex = self.bot:entindex(),
+        OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
+        Position = hTarget:GetAbsOrigin()
+    })
 end
 
 -- Casting
@@ -292,17 +262,6 @@ function CDOTA_Modifier_Lua:Decision_CastTargetNone(hTarget, hAbility)
 end
 
 -- Misc
-function CDOTA_Modifier_Lua:Decision_GatherAtCenter()
-    if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
-    if self.bot:HasMovementCapability() then
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
-            Position = Vector(0,0,0)
-        })
-    end
-end
-
 function CDOTA_Modifier_Lua:Decision_Tree(hTarget, hAbility)
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
@@ -478,9 +437,6 @@ CDOTA_Modifier_Lua.spell_filter_direct = {
 
     -- Keeper of the Light
     ["keeper_of_the_light_illuminate_end"] = true,
-
-    -- Lone Druid
-    ["lone_druid_spirit_bear_return"] = true,
 
     -- Mars
     ["mars_bulwark"] = true,
