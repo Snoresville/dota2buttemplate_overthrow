@@ -15,7 +15,7 @@ BUTTINGS = {
 	COOLDOWN_PERCENTAGE = 100,          -- (default = 100) factor for all cooldowns
 	GOLD_GAIN_PERCENTAGE = 100,         -- (default = 100) factor for gold income
 	GOLD_PER_MINUTE = 95,               -- (default =  90) passive gold
-	RESPAWN_TIME_PERCENTAGE = 20,      	-- (default = 100) factor for respawn time
+	RESPAWN_TIME_PERCENTAGE = 10,      	-- (default = 100) factor for respawn time
 	XP_GAIN_PERCENTAGE = 100,           -- (default = 100) factor for xp income
 
 	TOMBSTONE = 0,                      -- 0 = normal, 1 = You spawn a tombstone when you die. Teammates can ressurect you by channeling it.
