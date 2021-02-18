@@ -24,6 +24,8 @@ function modifier_bot_simple:OnCreated()
 end
 
 function modifier_bot_simple:OnIntervalThink()
+    OverthrowBot:OnIntervalThink()
+    --[[
     if (not self.bot or self.bot:IsNull()) or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
     if not self.bot:HasAttackCapability() then return end       -- If the bot can't attack
 
@@ -40,6 +42,7 @@ function modifier_bot_simple:OnIntervalThink()
             Position = Vector(0,0,0)
         })
     end
+    ]]
 end
 
 function modifier_bot_simple:TargetDecision(hTarget)

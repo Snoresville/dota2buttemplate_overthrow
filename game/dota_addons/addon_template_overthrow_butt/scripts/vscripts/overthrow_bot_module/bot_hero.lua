@@ -34,27 +34,5 @@ function modifier_bot:OnCreated()
 end
 
 function modifier_bot:OnIntervalThink()
-    if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
-
-    -- Bot improvement
-    self:ShopForItems()
-    if self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
-
-    -- Cannot be ordered
-    if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
-    if self.bot:IsCommandRestricted() then return end           -- Can't really do anything now huh
-
-    -- Search before moving
-    local search = self:CanSeeEnemies()                         
-
-    if search then                                              -- Bot can see at least one enemy
-        self:TargetDecision(search[1])
-    else                                                        -- Default move to arena
-        if self.bot:IsAttacking() then return end
-        ExecuteOrderFromTable({
-            UnitIndex = self.bot:entindex(),
-            OrderType = DOTA_UNIT_ORDER_ATTACK_MOVE,
-            Position = Vector(0,0,0)
-        })
-    end
+    OverthrowBot:OnIntervalThink()
 end
