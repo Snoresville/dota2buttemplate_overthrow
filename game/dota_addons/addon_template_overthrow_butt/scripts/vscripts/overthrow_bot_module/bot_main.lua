@@ -111,7 +111,18 @@ end
 --
 
 function OverthrowBot:OnIntervalThink()
-    if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
+    if not self.bot or self.bot:IsNull() then return end -- If the bot is missing
+    if not self.bot:IsAlive() then 
+        if self.bot:IsHero() and (not self.bot:IsClone() or self.bot:IsIllusion()) then
+            if #self.item_progression == 0 and self.bot:GetBuybackCooldownTime() <= 0 and self.bot:GetBuybackCost(false) <= self.bot:GetGold() then
+                ExecuteOrderFromTable({
+                    UnitIndex = self.bot:entindex(),
+                    OrderType = DOTA_UNIT_ORDER_BUYBACK
+                })
+            end
+        end
+        return 
+    end   
 
     -- Bot improvement
     OverthrowBot.ShopForItems(self)
@@ -617,7 +628,7 @@ function OverthrowBot:SpendAbilityPoints()
 end
 
 function OverthrowBot:ShopForItems()
-    if #self.item_progression == 0 then return end
+    if not self.item_progression or #self.item_progression == 0 then return end
 
     local target_item = self.item_progression[1]
 
