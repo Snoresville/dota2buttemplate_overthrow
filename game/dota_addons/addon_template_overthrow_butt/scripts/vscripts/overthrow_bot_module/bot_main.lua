@@ -228,7 +228,11 @@ function OverthrowBot:TargetDecision(hTarget)
             OverthrowBot.Decision_Toggle(self, hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
             local search = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[abilityQueued:GetAbilityName()] == true, abilityQueued)
-            OverthrowBot.Decision_CastTargetEntity(self, search[1], abilityQueued, hTarget)
+            if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_BOTH then
+                OverthrowBot.Decision_CastTargetPreferEnemies(self, search[1], abilityQueued, hTarget)
+            else
+                OverthrowBot.Decision_CastTargetEntity(self, search[1], abilityQueued, hTarget)
+            end
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
             OverthrowBot.Decision_CastTargetPoint(self, hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_NO_TARGET) then
@@ -285,6 +289,15 @@ function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
     else
         OverthrowBot.Decision_AttackTarget(self, hFallback)
     end
+end
+function OverthrowBot:Decision_CastTargetPreferEnemies(hTarget, hAbility, hFallback)
+    local search_target
+    if RollPercentage(80) then
+        search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())[1]
+    else
+        search_target = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[hAbility:GetAbilityName()] == true, hAbility)[1]
+    end
+    OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
 end
 function OverthrowBot:Decision_CastTargetPoint(hTarget, hAbility)
     ExecuteOrderFromTable({
@@ -371,15 +384,7 @@ end
 -- Individual abilities
 OverthrowBot.Decision_Ability = {
     tiny_toss = function(self, hTarget, hAbility)
-        local search = FindUnitsInRadius(
-            self.bot:GetTeam(), 
-            self.bot:GetAbsOrigin(), 
-            nil, 
-            hAbility:GetSpecialValueFor("grab_radius") * 0.9, 
-            DOTA_UNIT_TARGET_TEAM_BOTH, 
-            DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
-            DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
-            FIND_ANY_ORDER, false)
+        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("grab_radius") * 0.9, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_HERO)
         if #search > 1 then
             OverthrowBot.Decision_CastTargetEntity(self, hTarget, hAbility, hTarget)
         else
@@ -413,6 +418,10 @@ OverthrowBot.Decision_Ability = {
         end
     end,
 
+    hoodwink_acorn_shot = function(self, hTarget, hAbility)
+        OverthrowBot.Decision_CastTargetPoint(self, hTarget, hAbility)
+    end,
+
     furion_force_of_nature = function(self, hTarget, hAbility)
         OverthrowBot.Decision_Tree(self, hTarget, hAbility)
     end,
@@ -427,16 +436,6 @@ OverthrowBot.Decision_Ability = {
         else
             OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
-    end,
-
-    pugna_life_drain = function(self, hTarget, hAbility)
-        local search_target
-        if RollPercentage(80) then
-            search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())[1]
-        else
-            search_target = OverthrowBot.GetClosestUnit(self, true, hAbility)[1]
-        end
-        OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
     end,
 
     invoker_invoke = function(self, hTarget, hAbility)
@@ -458,13 +457,13 @@ OverthrowBot.Decision_Ability = {
         end
     end,
 
-    item_cyclone = function(self, hTarget, hAbility)
-        OverthrowBot.Decision_CastTargetEntity(self, self.bot, hAbility, hTarget)
-    end,
-
-    item_wind_waker = function(self, hTarget, hAbility)
-        local search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_HERO)[2]
-        OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
+    item_ethereal_blade = function(self, hTarget, hAbility)
+        local search = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO)
+        if #search > 0 then
+            OverthrowBot.Decision_CastTargetEntity(self, hTarget, hAbility, hTarget)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
     end,
 
     --[[
@@ -775,7 +774,7 @@ ListenToGameEvent("game_rules_state_change", function()
 					_G.player_chosen_heroes[PlayerResource:GetSelectedHeroName(playerID)] = true
 				end
 			end
-			SendToConsole("dota_bot_populate")
+			SendToConsole("sv_cheats 1; dota_bot_populate")
 		end
 	end
 

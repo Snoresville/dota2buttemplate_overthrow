@@ -6,7 +6,7 @@ BUTTINGS = {
 	GAME_MODE = "AP",                   -- "AR" "AP" All Random/ All Pick
 	ALLOW_SAME_HERO_SELECTION = 0,      -- 0 = everyone must pick a different hero, 1 = can pick same
 	HERO_BANNING = 0,                   -- 0 = no banning, 1 = banning phase
-	USE_BOTS = 0, 						-- Adds bots to the game
+	USE_BOTS = 1, 						-- Adds bots to the game
 	MAX_LEVEL = MAX_LEVEL,              -- (default = 30) the max level a hero can reach
 
 	UNIVERSAL_SHOP_MODE = 1,            -- 0 = normal, 1 = you can buy every item in every shop (secret/side/base).
