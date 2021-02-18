@@ -2,8 +2,6 @@ BUTTINGS = BUTTINGS or {MAX_LEVEL = MAX_LEVEL}
 
 require("internal/utils/butt_api")
 LinkLuaModifier("modifier_courier_speed", "internal/modifier_courier_speed.lua", LUA_MODIFIER_MOTION_NONE)
-LinkLuaModifier("modifier_bot", "internal/modifier_bot.lua", LUA_MODIFIER_MOTION_NONE)
-LinkLuaModifier("modifier_bot_simple", "internal/modifier_bot_simple.lua", LUA_MODIFIER_MOTION_NONE)
 
 ListenToGameEvent("game_rules_state_change", function()
 	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_HERO_SELECTION) then
@@ -100,10 +98,6 @@ ListenToGameEvent("npc_spawned", function(keys)
 
 		elseif unit:IsCourier() then 
 			unit:AddNewModifier(unit, nil, "modifier_courier_speed", {})
-		end
-
-		if IsServer() and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or (unit:IsClone() or unit:IsTempestDouble())) then
-			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end
 	end
 

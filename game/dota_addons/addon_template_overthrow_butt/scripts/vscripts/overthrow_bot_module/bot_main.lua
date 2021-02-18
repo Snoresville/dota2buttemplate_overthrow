@@ -5,6 +5,9 @@ if OverthrowBot == nil then
 	_G.OverthrowBot = class({})
 	OverthrowBot.item_kv = LoadKeyValues("scripts/npc/items.txt")
 	OverthrowBot.ability_kv = LoadKeyValues("scripts/npc/npc_abilities.txt")
+
+    -- This is turned on once the game is in progress so we dont put bot_unit on units spawned before gameplay
+    OverthrowBot.unit_spawn_ai_enabled = false
 end
 
 --
@@ -112,9 +115,10 @@ end
 
 function OverthrowBot:OnIntervalThink()
     if not self.bot or self.bot:IsNull() then return end -- If the bot is missing
+    if self.bot:HasAttackCapability() == false then return end -- If this bot is practically useless
     if not self.bot:IsAlive() then 
         if self.bot:IsHero() and (not self.bot:IsClone() or self.bot:IsIllusion()) then
-            if #self.item_progression == 0 and self.bot:GetBuybackCooldownTime() <= 0 and self.bot:GetBuybackCost(false) <= self.bot:GetGold() then
+            if self.item_progression and #self.item_progression == 0 and self.bot:GetBuybackCooldownTime() <= 0 and self.bot:GetBuybackCost(false) <= self.bot:GetGold() then
                 ExecuteOrderFromTable({
                     UnitIndex = self.bot:entindex(),
                     OrderType = DOTA_UNIT_ORDER_BUYBACK
@@ -349,15 +353,19 @@ function OverthrowBot:Decision_Toggle(hTarget, hAbility)
         OverthrowBot.Decision_AttackTarget(self, hTarget)
     end
 end
-function OverthrowBot:Decision_CastTargetPointAlly(hAbility) 
+function OverthrowBot:Decision_CastTargetPointAlly(hFallback, hAbility) 
     local targets = OverthrowBot.GetClosestUnits(self, hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), DOTA_UNIT_TARGET_TEAM_FRIENDLY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
     local hTarget = targets[math.random(#targets)]
-    ExecuteOrderFromTable({
-        UnitIndex = self.bot:entindex(),
-        OrderType = DOTA_UNIT_ORDER_CAST_POSITION,
-        Position = hTarget:GetAbsOrigin(),
-        AbilityIndex = hAbility:entindex()
-    })
+        if hTarget then
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_CAST_POSITION,
+            Position = hTarget:GetAbsOrigin(),
+            AbilityIndex = hAbility:entindex()
+        })
+    else
+        OverthrowBot.Decision_AttackTarget(self, hFallback)
+    end
 end
 
 -- Individual abilities
@@ -410,7 +418,7 @@ OverthrowBot.Decision_Ability = {
     end,
 
     arc_warden_magnetic_field = function(self, hTarget, hAbility)
-        OverthrowBot.Decision_CastTargetPointAlly(self, hAbility)
+        OverthrowBot.Decision_CastTargetPointAlly(self, hTarget, hAbility)
     end,
 
     ember_spirit_activate_fire_remnant = function(self, hTarget, hAbility)
@@ -458,6 +466,24 @@ OverthrowBot.Decision_Ability = {
         local search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_HERO)[2]
         OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
     end,
+
+    --[[
+    troll_warlord_berserkers_rage = function(self, hTarget, hAbility)
+        local ranged_axes = self.bot:FindAbilityByName("troll_warlord_whirling_axes_ranged")
+        if ranged_axes and ranged_axes:GetLevel() > 0 and ranged_axes:GetCooldownTimeRemaining() <= 0 then
+            print(ranged_axes:GetCooldownTimeRemaining())
+            if hAbility:GetToggleState() == true then
+                OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+            else
+                OverthrowBot.Decision_CastTargetEntity(self, hTarget, ranged_axes, hTarget)
+            end
+        elseif hAbility:GetToggleState() == false then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end,
+    ]]
 }
 
 --
@@ -526,6 +552,9 @@ OverthrowBot.spell_filter_direct = {
 
     -- Underlord
     ["abyssal_underlord_cancel_dark_rift"] = true,
+
+    -- Visage
+    ["visage_summon_familiars_stone_form"] = true,
 
     -- Wisp
     ["wisp_spirits_in"] = true,
@@ -777,6 +806,18 @@ ListenToGameEvent("game_rules_state_change", function()
 					)
 				end
 			end
+            OverthrowBot.unit_spawn_ai_enabled = true
 		end
 	end
+end, nil)
+
+ListenToGameEvent("npc_spawned", function(keys)
+	local unit = keys.entindex and EntIndexToHScript(keys.entindex)
+
+	if unit then
+		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or (unit:IsClone() or unit:IsTempestDouble())) then
+			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
+		end
+	end
+
 end, nil)

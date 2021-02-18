@@ -42,9 +42,9 @@ function InternalFilters:ExecuteOrderFilter(event)
 			HUDError("No buybacks left", hero:GetPlayerOwnerID())
 			return false 
 		else
-			hero:SetThink(function() hero:SetBuybackCooldownTime(BUTTINGS.BUYBACK_COOLDOWN) end, 0.2)
 			self.bbCount[iUnit] = self.bbCount[iUnit] - 1 
 		end
+		hero:SetThink(function() hero:SetBuybackCooldownTime(BUTTINGS.BUYBACK_COOLDOWN) end, 0.2)
 	end
 	if EditFilterToCourier and false==EditFilterToCourier(event) then
 		return false
