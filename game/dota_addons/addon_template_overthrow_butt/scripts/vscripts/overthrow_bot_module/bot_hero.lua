@@ -525,7 +525,7 @@ function modifier_bot:SpendAbilityPoints()
 end
 
 function modifier_bot:ShopForItems()
-    if #self.item_progression == 0 then return end
+    if not self.item_progression or #self.item_progression == 0 then return end
 
     local target_item = self.item_progression[1]
 
