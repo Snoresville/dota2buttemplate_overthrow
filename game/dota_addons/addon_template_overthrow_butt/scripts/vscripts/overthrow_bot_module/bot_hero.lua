@@ -349,6 +349,15 @@ modifier_bot.Decision_Ability = {
             self:Decision_CastTargetNone(hTarget, hAbility)
         end
     end,
+
+    item_cyclone = function(self, hTarget, hAbility)
+        self:Decision_CastTargetEntity(self.bot, hAbility, hTarget)
+    end,
+
+    item_wind_waker = function(self, hTarget, hAbility)
+        local search_target = self:GetClosestUnits(FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_HERO)[2]
+        self:Decision_CastTargetEntity(search_target, hAbility, hTarget)
+    end,
 }
 
 --
