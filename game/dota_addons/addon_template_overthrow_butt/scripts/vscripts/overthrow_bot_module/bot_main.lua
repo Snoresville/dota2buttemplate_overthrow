@@ -114,25 +114,25 @@ function OverthrowBot:OnIntervalThink()
     if not self.bot or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
 
     -- Bot improvement
-    self:ShopForItems()
-    if self.bot.GetAbilityPoints and self.bot:GetAbilityPoints() > 0 then self:SpendAbilityPoints() end
+    OverthrowBot.ShopForItems(self)
+    if self.bot.GetAbilityPoints and self.bot:GetAbilityPoints() > 0 then OverthrowBot.SpendAbilityPoints(self) end
 
     -- Cannot be ordered
     if self.bot:IsChanneling() then return end                  -- MMM Let's not interrupt this bot's concentration
     if self.bot:IsCommandRestricted() then return end           -- Can't really do anything now huh
 
     -- Search before moving
-    local search = self:CanSeeEnemies()                         
+    local search = OverthrowBot.CanSeeEnemies(self)                         
 
     if search then                                              -- Bot can see at least one enemy
-        self:TargetDecision(search[1])
+        OverthrowBot.TargetDecision(self, search[1])
     else                                                        -- Default move to arena
         if self.bot:IsAttacking() then return end
-        self:Decision_GatherAtCenter()
+        OverthrowBot.Decision_GatherAtCenter(self)
     end
 end
 
-function CDOTA_Modifier_Lua:GetCastableAbilities()
+function OverthrowBot:GetCastableAbilities()
     local abilities = {}
 
     -- Base Case
@@ -148,10 +148,10 @@ function CDOTA_Modifier_Lua:GetCastableAbilities()
         if ability:GetLevel() == 0 then goto continue end
         if ability:IsHidden() then goto continue end
         --if --[[HasBit( ability:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET ) and]] HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue end
-		for _,behaviour in pairs(self.spell_filter_behavior) do
+		for _,behaviour in pairs(OverthrowBot.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue end
 		end
-        if self.spell_filter_direct[ability:GetAbilityName()] then goto continue end
+        if OverthrowBot.spell_filter_direct[ability:GetAbilityName()] then goto continue end
         if ability:GetCooldownTimeRemaining() ~= 0 then goto continue end
         if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue end
         if not ability:IsActivated() then goto continue end
@@ -172,10 +172,10 @@ function CDOTA_Modifier_Lua:GetCastableAbilities()
 		-- Ability checkpoint
 		if ability == nil then goto continue_item end
         if HasBit( ability:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then goto continue_item end
-		for _,behaviour in pairs(self.spell_filter_behavior) do
+		for _,behaviour in pairs(OverthrowBot.spell_filter_behavior) do
 			if HasBit( ability:GetBehavior(), behaviour ) then goto continue_item end
 		end
-		if self.spell_filter_direct[ability:GetAbilityName()] then goto continue_item end
+		if OverthrowBot.spell_filter_direct[ability:GetAbilityName()] then goto continue_item end
         if ability:GetCooldownTimeRemaining() ~= 0 then goto continue_item end
         if ability:GetManaCost(-1) > self.bot:GetMana() then goto continue_item end
         if not ability:IsActivated() then goto continue_item end
@@ -192,8 +192,8 @@ function CDOTA_Modifier_Lua:GetCastableAbilities()
     return abilities
 end
 
-function CDOTA_Modifier_Lua:TargetDecision(hTarget)
-    local castableAbilities = self:GetCastableAbilities()
+function OverthrowBot:TargetDecision(hTarget)
+    local castableAbilities = OverthrowBot.GetCastableAbilities(self)
     local abilityQueued
     if #castableAbilities > 0 then
         abilityQueued = castableAbilities[math.random(#castableAbilities)]
@@ -205,22 +205,22 @@ function CDOTA_Modifier_Lua:TargetDecision(hTarget)
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
     if abilityQueued then
-        if self.Decision_Ability[abilityQueued:GetAbilityName()] then
-            self.Decision_Ability[abilityQueued:GetAbilityName()](self, hTarget, abilityQueued)
+        if OverthrowBot.Decision_Ability[abilityQueued:GetAbilityName()] then
+            OverthrowBot.Decision_Ability[abilityQueued:GetAbilityName()](self, hTarget, abilityQueued)
         elseif HasBit( abilityQueued:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
-            self:Decision_Tree(hTarget, abilityQueued)
+            OverthrowBot.Decision_Tree(self, hTarget, abilityQueued)
         elseif HasBit( abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_TOGGLE) then
-            self:Decision_Toggle(hTarget, abilityQueued)
+            OverthrowBot.Decision_Toggle(self, hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_UNIT_TARGET) then
-            local search = self:GetClosestUnit(self.cannot_self_target[abilityQueued:GetAbilityName()] == true, abilityQueued)
-            self:Decision_CastTargetEntity(search[1], abilityQueued, hTarget)
+            local search = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[abilityQueued:GetAbilityName()] == true, abilityQueued)
+            OverthrowBot.Decision_CastTargetEntity(self, search[1], abilityQueued, hTarget)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
-            self:Decision_CastTargetPoint(hTarget, abilityQueued)
+            OverthrowBot.Decision_CastTargetPoint(self, hTarget, abilityQueued)
         elseif HasBit(abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_NO_TARGET) then
-            self:Decision_CastTargetNone(hTarget, abilityQueued)
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, abilityQueued)
         end
     else
-        self:Decision_AttackMove(hTarget)
+        OverthrowBot.Decision_AttackMove(self, hTarget)
     end
 end
 
@@ -229,7 +229,7 @@ end
 --
 
 -- Attacking
-function CDOTA_Modifier_Lua:Decision_AttackTarget(hTarget)
+function OverthrowBot:Decision_AttackTarget(hTarget)
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if hTarget:IsAlive() and not hTarget:IsAttackImmune() then
         ExecuteOrderFromTable({
@@ -238,10 +238,10 @@ function CDOTA_Modifier_Lua:Decision_AttackTarget(hTarget)
             TargetIndex = hTarget:entindex()
         })
     else
-        self:Decision_AttackMove(hTarget)
+        OverthrowBot.Decision_AttackMove(self, hTarget)
     end
 end
-function CDOTA_Modifier_Lua:Decision_AttackMove(hTarget)
+function OverthrowBot:Decision_AttackMove(hTarget)
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if self.bot:HasMovementCapability() then
         ExecuteOrderFromTable({
@@ -259,7 +259,7 @@ function CDOTA_Modifier_Lua:Decision_AttackMove(hTarget)
 end
 
 -- Casting
-function CDOTA_Modifier_Lua:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
+function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
     if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -268,10 +268,10 @@ function CDOTA_Modifier_Lua:Decision_CastTargetEntity(hTarget, hAbility, hFallba
             AbilityIndex = hAbility:entindex()
         })
     else
-        self:Decision_AttackTarget(hFallback)
+        OverthrowBot.Decision_AttackTarget(self, hFallback)
     end
 end
-function CDOTA_Modifier_Lua:Decision_CastTargetPoint(hTarget, hAbility)
+function OverthrowBot:Decision_CastTargetPoint(hTarget, hAbility)
     ExecuteOrderFromTable({
         UnitIndex = self.bot:entindex(),
         OrderType = DOTA_UNIT_ORDER_CAST_POSITION,
@@ -279,7 +279,7 @@ function CDOTA_Modifier_Lua:Decision_CastTargetPoint(hTarget, hAbility)
         AbilityIndex = hAbility:entindex()
     })
 end
-function CDOTA_Modifier_Lua:Decision_CastTargetNone(hTarget, hAbility)
+function OverthrowBot:Decision_CastTargetNone(hTarget, hAbility)
     if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -287,12 +287,12 @@ function CDOTA_Modifier_Lua:Decision_CastTargetNone(hTarget, hAbility)
             AbilityIndex = hAbility:entindex()
         })
     else
-        self:Decision_AttackTarget(hTarget)
+        OverthrowBot.Decision_AttackTarget(self, hTarget)
     end
 end
 
 -- Misc
-function CDOTA_Modifier_Lua:Decision_GatherAtCenter()
+function OverthrowBot:Decision_GatherAtCenter()
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if self.bot:HasMovementCapability() then
         ExecuteOrderFromTable({
@@ -303,7 +303,7 @@ function CDOTA_Modifier_Lua:Decision_GatherAtCenter()
     end
 end
 
-function CDOTA_Modifier_Lua:Decision_Tree(hTarget, hAbility)
+function OverthrowBot:Decision_Tree(hTarget, hAbility)
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
     for _, tree_check in pairs(trees) do
@@ -322,24 +322,24 @@ function CDOTA_Modifier_Lua:Decision_Tree(hTarget, hAbility)
                 AbilityIndex = hAbility:entindex()
             })
         elseif HasBit(hAbility:GetBehavior(), DOTA_ABILITY_BEHAVIOR_POINT) then
-            self:Decision_CastTargetPoint(tree, hAbility)
+            OverthrowBot.Decision_CastTargetPoint(self, tree, hAbility)
         else
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     else
-        self:Decision_AttackTarget(hTarget)
+        OverthrowBot.Decision_AttackTarget(self, hTarget)
     end
 end
-function CDOTA_Modifier_Lua:Decision_Toggle(hTarget, hAbility)
+function OverthrowBot:Decision_Toggle(hTarget, hAbility)
     -- Turn on the toggles
     if hAbility:IsToggle() and hAbility:GetToggleState() == false then
         hAbility:OnToggle()
     else
-        self:Decision_AttackTarget(hTarget)
+        OverthrowBot.Decision_AttackTarget(self, hTarget)
     end
 end
-function CDOTA_Modifier_Lua:Decision_CastTargetPointAlly(hAbility) 
-    local targets = self:GetClosestUnits(hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), DOTA_UNIT_TARGET_TEAM_FRIENDLY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+function OverthrowBot:Decision_CastTargetPointAlly(hAbility) 
+    local targets = OverthrowBot.GetClosestUnits(self, hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), DOTA_UNIT_TARGET_TEAM_FRIENDLY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
     local hTarget = targets[math.random(#targets)]
     ExecuteOrderFromTable({
         UnitIndex = self.bot:entindex(),
@@ -350,7 +350,7 @@ function CDOTA_Modifier_Lua:Decision_CastTargetPointAlly(hAbility)
 end
 
 -- Individual abilities
-CDOTA_Modifier_Lua.Decision_Ability = {
+OverthrowBot.Decision_Ability = {
     tiny_toss = function(self, hTarget, hAbility)
         local search = FindUnitsInRadius(
             self.bot:GetTeam(), 
@@ -362,62 +362,62 @@ CDOTA_Modifier_Lua.Decision_Ability = {
             DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS, 
             FIND_ANY_ORDER, false)
         if #search > 1 then
-            self:Decision_CastTargetEntity(hTarget, hAbility, hTarget)
+            OverthrowBot.Decision_CastTargetEntity(self, hTarget, hAbility, hTarget)
         else
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
 
     templar_assassin_meld = function(self, hTarget, hAbility)
-        local search = self:GetClosestUnits(self.bot:Script_GetAttackRange() * 0.8, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        local search = OverthrowBot.GetClosestUnits(self, self.bot:Script_GetAttackRange() * 0.8, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
         if #search > 0 then
-            self:Decision_CastTargetNone(hTarget, hAbility)
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
         else
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
 
     rattletrap_power_cogs = function(self, hTarget, hAbility)
-        local search = self:GetClosestUnits(hAbility:GetSpecialValueFor("cogs_radius") * 0.75, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("cogs_radius") * 0.75, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
         if #search > 0 then
-            self:Decision_CastTargetNone(hTarget, hAbility)
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
         else
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
 
     hoodwink_scurry = function(self, hTarget, hAbility)
         if not self.bot:HasModifier("modifier_hoodwink_scurry_active") then
-            self:Decision_CastTargetNone(hTarget, hAbility)
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
         else
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
 
     furion_force_of_nature = function(self, hTarget, hAbility)
-        self:Decision_Tree(hTarget, hAbility)
+        OverthrowBot.Decision_Tree(self, hTarget, hAbility)
     end,
 
     arc_warden_magnetic_field = function(self, hTarget, hAbility)
-        self:Decision_CastTargetPointAlly(hAbility)
+        OverthrowBot.Decision_CastTargetPointAlly(self, hAbility)
     end,
 
     ember_spirit_activate_fire_remnant = function(self, hTarget, hAbility)
         if self.bot:HasModifier("modifier_ember_spirit_fire_remnant_timer") then
-            self:Decision_CastTargetPoint(hTarget, hAbility)
+            OverthrowBot.Decision_CastTargetPoint(self, hTarget, hAbility)
         else
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
 
     pugna_life_drain = function(self, hTarget, hAbility)
         local search_target
         if RollPercentage(80) then
-            search_target = self:GetClosestUnits(FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())[1]
+            search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())[1]
         else
-            search_target = self:GetClosestUnit(true, hAbility)[1]
+            search_target = OverthrowBot.GetClosestUnit(self, true, hAbility)[1]
         end
-        self:Decision_CastTargetEntity(search_target, hAbility, hTarget)
+        OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
     end,
 
     invoker_invoke = function(self, hTarget, hAbility)
@@ -429,35 +429,35 @@ CDOTA_Modifier_Lua.Decision_Ability = {
         end
 
         if #orbs == 0 then 
-            self:Decision_AttackTarget(hTarget)
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
         elseif self.invoker_orb_casts < 3 or RollPercentage(20) then
             self.invoker_orb_casts = self.invoker_orb_casts + 1
-            self:Decision_CastTargetNone(hTarget, orbs[math.random(#orbs)])
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, orbs[math.random(#orbs)])
         else
             self.invoker_orb_casts = 0
-            self:Decision_CastTargetNone(hTarget, hAbility)
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
         end
     end,
 
     item_cyclone = function(self, hTarget, hAbility)
-        self:Decision_CastTargetEntity(self.bot, hAbility, hTarget)
+        OverthrowBot.Decision_CastTargetEntity(self, self.bot, hAbility, hTarget)
     end,
 
     item_wind_waker = function(self, hTarget, hAbility)
-        local search_target = self:GetClosestUnits(FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_HERO)[2]
-        self:Decision_CastTargetEntity(search_target, hAbility, hTarget)
+        local search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_HERO)[2]
+        OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
     end,
 }
 
 --
 -- Filters
 --
-CDOTA_Modifier_Lua.spell_filter_behavior = {
+OverthrowBot.spell_filter_behavior = {
     DOTA_ABILITY_BEHAVIOR_PASSIVE,
     DOTA_ABILITY_BEHAVIOR_ATTACK,
 }
 
-CDOTA_Modifier_Lua.spell_filter_direct = {
+OverthrowBot.spell_filter_direct = {
     -- Items
     ["item_radiance"] = true,
     ["item_hurricane_pike"] = true,
@@ -521,7 +521,7 @@ CDOTA_Modifier_Lua.spell_filter_direct = {
     ["wisp_spirits_out"] = true,
 }
 
-CDOTA_Modifier_Lua.cannot_self_target = {
+OverthrowBot.cannot_self_target = {
     -- Spells
     ["abaddon_death_coil"] = true,
     ["earth_spirit_boulder_smash"] = true,
@@ -539,7 +539,7 @@ CDOTA_Modifier_Lua.cannot_self_target = {
 --
 -- Search Functions
 --
-function CDOTA_Modifier_Lua:CanSeeEnemies()
+function OverthrowBot:CanSeeEnemies()
     local search = FindUnitsInRadius(
         self.bot:GetTeam(), 
         self.bot:GetAbsOrigin(), 
@@ -553,9 +553,9 @@ function CDOTA_Modifier_Lua:CanSeeEnemies()
     return #search > 0 and search or false 
 end
 
-function CDOTA_Modifier_Lua:GetClosestUnit(notSelfTarget, hAbility)
+function OverthrowBot:GetClosestUnit(notSelfTarget, hAbility)
     local search_radius = (hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_CREEP or hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_BASIC) and (hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus()) or FIND_UNITS_EVERYWHERE
-    local search = self:GetClosestUnits(search_radius, hAbility:GetAbilityTargetTeam(), hAbility:GetAbilityTargetType())
+    local search = OverthrowBot.GetClosestUnits(self, search_radius, hAbility:GetAbilityTargetTeam(), hAbility:GetAbilityTargetType())
 
     if notSelfTarget then
         if #search > 1 then
@@ -568,7 +568,7 @@ function CDOTA_Modifier_Lua:GetClosestUnit(notSelfTarget, hAbility)
     return #search > 0 and search or {} 
 end
 
-function CDOTA_Modifier_Lua:GetClosestUnits(search_radius, flags_team, flags_type)
+function OverthrowBot:GetClosestUnits(search_radius, flags_team, flags_type)
     return FindUnitsInRadius(
         self.bot:GetTeam(), 
         self.bot:GetAbsOrigin(), 
@@ -583,7 +583,7 @@ end
 --
 -- Hero Progression
 --
-function CDOTA_Modifier_Lua:SpendAbilityPoints()
+function OverthrowBot:SpendAbilityPoints()
     local basic = {self.bot:GetAbilityByIndex(0), self.bot:GetAbilityByIndex(1), self.bot:GetAbilityByIndex(2)}
     local ultimate = self.bot:GetAbilityByIndex(5)
     local level = self.bot:GetLevel()
@@ -616,7 +616,7 @@ function CDOTA_Modifier_Lua:SpendAbilityPoints()
     end
 end
 
-function CDOTA_Modifier_Lua:ShopForItems()
+function OverthrowBot:ShopForItems()
     if #self.item_progression == 0 then return end
 
     local target_item = self.item_progression[1]
@@ -628,7 +628,7 @@ function CDOTA_Modifier_Lua:ShopForItems()
     end
 end
 
-function CDOTA_Modifier_Lua:CreateItemProgression()
+function OverthrowBot:CreateItemProgression()
     --local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
     --local hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")["Items"]
     --for k,v in pairs(hero_build) do print(k,v) end

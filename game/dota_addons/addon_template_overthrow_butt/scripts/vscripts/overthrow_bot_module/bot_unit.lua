@@ -19,13 +19,15 @@ end
 function modifier_bot_simple:OnCreated()
     if IsServer() then
         self.bot = self:GetParent()
+        if self.bot:GetUnitName() == "npc_dota_lone_druid_bear4" then OverthrowBot.CreateItemProgression(self) end
+
         self:StartIntervalThink(0.25)
     end
 end
 
 function modifier_bot_simple:OnIntervalThink()
-    OverthrowBot:OnIntervalThink()
-    --[[
+    --OverthrowBot.OnIntervalThink(self)
+    
     if (not self.bot or self.bot:IsNull()) or not self.bot:IsAlive() then return end   -- If the bot is dead or missing
     if not self.bot:HasAttackCapability() then return end       -- If the bot can't attack
 
@@ -42,7 +44,7 @@ function modifier_bot_simple:OnIntervalThink()
             Position = Vector(0,0,0)
         })
     end
-    ]]
+    
 end
 
 function modifier_bot_simple:TargetDecision(hTarget)

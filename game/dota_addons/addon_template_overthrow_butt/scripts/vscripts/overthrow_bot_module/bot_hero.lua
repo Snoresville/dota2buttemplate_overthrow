@@ -23,7 +23,7 @@ function modifier_bot:OnCreated()
             self.bot:SetControllableByPlayer(ID - 1, false)
         end
         
-        self:CreateItemProgression()
+        OverthrowBot.CreateItemProgression(self)
 
         -- Default Values
         self.talentlevel = 0
@@ -34,5 +34,5 @@ function modifier_bot:OnCreated()
 end
 
 function modifier_bot:OnIntervalThink()
-    OverthrowBot:OnIntervalThink()
+    OverthrowBot.OnIntervalThink(self)
 end
