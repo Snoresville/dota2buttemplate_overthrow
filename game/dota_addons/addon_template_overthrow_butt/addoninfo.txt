@@ -2,13 +2,13 @@
 {
 	maps = 
 	[
+		"forest_solo",
 		"desert_duo",
 		"mines_trio",
-		"forest_solo",
-		"desert_quintet",
 		"temple_quartet",
-		"desert_octet",
+		"desert_quintet",
 		"core_quartet",
+		"desert_octet",
 	]
 	IsPlayable = 1
 	HeroGuidesSupported = 1
