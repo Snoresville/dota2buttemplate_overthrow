@@ -794,7 +794,7 @@ ListenToGameEvent("game_rules_state_change", function()
 					_G.player_chosen_heroes[PlayerResource:GetSelectedHeroName(playerID)] = true
 				end
 			end
-			SendToConsole("sv_cheats 1; dota_bot_populate")
+			SendToConsole("sm_gmode 1; dota_bot_populate")
 		end
 	end
 
