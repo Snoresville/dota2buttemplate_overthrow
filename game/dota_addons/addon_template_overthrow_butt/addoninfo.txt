@@ -9,6 +9,7 @@
 		"desert_quintet",
 		"core_quartet",
 		"desert_octet",
+		"",
 	]
 	IsPlayable = 1
 	HeroGuidesSupported = 1
@@ -47,7 +48,6 @@
 	HideInTools = false
 	IsTemplate = false
 	CheckAFKPlayers = false
-	DefaultMap = ""
 	Default_Keys = 
 	[
 		{
