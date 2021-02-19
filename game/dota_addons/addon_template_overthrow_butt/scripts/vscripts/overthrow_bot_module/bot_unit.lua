@@ -21,7 +21,7 @@ function modifier_bot_simple:OnCreated()
         self.bot = self:GetParent()
 
         if self.bot:GetUnitName() == "npc_dota_lone_druid_bear4" then
-            self:CreateItemProgression()
+            OverthrowBot.CreateItemProgression(self)
         end
 
         self:StartIntervalThink(0.25)

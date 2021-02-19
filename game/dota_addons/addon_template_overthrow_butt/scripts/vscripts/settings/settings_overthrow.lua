@@ -13,3 +13,5 @@ OVERTHROW_KILL_LIMITS = {
 
     ["default"]         = 30,
 }
+
+ENABLE_LEADER_KILL_NOTIFICATION = false

@@ -250,7 +250,7 @@ function COverthrowGameMode:OnEntityKilled( event )
 		--print("Hero has been killed")
 		if hero:IsRealHero() and heroTeam ~= killedTeam then
 			--print("Granting killer xp")
-			if killedUnit:GetTeam() == self.leadingTeam and self.isGameTied == false then
+			if ENABLE_LEADER_KILL_NOTIFICATION and killedUnit:GetTeam() == self.leadingTeam and self.isGameTied == false then
 				local memberID = hero:GetPlayerID()
 				PlayerResource:ModifyGold( memberID, 500, true, 0 )
 				hero:AddExperience( 100, 0, false, false )

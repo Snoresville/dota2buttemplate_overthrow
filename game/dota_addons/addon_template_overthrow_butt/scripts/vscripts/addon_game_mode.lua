@@ -29,9 +29,9 @@ require("internal/xp_modifier")
 
 --softRequire("events") Already required by the original game mode
 softRequire("filters")
-softRequire("settings_overthrow")
-softRequire("settings_butt")
-softRequire("settings_misc")
+softRequire("settings/settings_overthrow")
+softRequire("settings/settings_butt")
+softRequire("settings/settings_misc")
 softRequire("startitems")
 softRequire("thinker")
 
@@ -278,7 +278,7 @@ function COverthrowGameMode:InitGameMode()
 	--GameRules:SetHideKillMessageHeaders( true )
 	GameRules:GetGameModeEntity():SetTopBarTeamValuesOverride( true )
 	GameRules:GetGameModeEntity():SetTopBarTeamValuesVisible( false )
-	GameRules:SetHideKillMessageHeaders( true )
+	GameRules:SetHideKillMessageHeaders( false )
 	GameRules:SetUseUniversalShopMode( true )
 	GameRules:GetGameModeEntity():SetRuneEnabled( DOTA_RUNE_DOUBLEDAMAGE , true ) --Double Damage
 	GameRules:GetGameModeEntity():SetRuneEnabled( DOTA_RUNE_HASTE, true ) --Haste

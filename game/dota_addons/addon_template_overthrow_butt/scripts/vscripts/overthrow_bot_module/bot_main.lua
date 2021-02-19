@@ -230,6 +230,8 @@ function OverthrowBot:TargetDecision(hTarget)
             local search = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[abilityQueued:GetAbilityName()] == true, abilityQueued)
             if abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_BOTH then
                 OverthrowBot.Decision_CastTargetPreferEnemies(self, search[1], abilityQueued, hTarget)
+            elseif abilityQueued:GetAbilityTargetTeam() == DOTA_UNIT_TARGET_TEAM_FRIENDLY then
+                OverthrowBot.Decision_CastTargetRandomAlly(self, search[1], abilityQueued, hTarget)
             else
                 OverthrowBot.Decision_CastTargetEntity(self, search[1], abilityQueued, hTarget)
             end
@@ -291,13 +293,18 @@ function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
     end
 end
 function OverthrowBot:Decision_CastTargetPreferEnemies(hTarget, hAbility, hFallback)
-    local search_target
-    if RollPercentage(80) then
-        search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())[1]
+    local search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())
+    if #search_target > 0 and RollPercentage(80) then
+        search_target = search_target[1]
     else
         search_target = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[hAbility:GetAbilityName()] == true, hAbility)[1]
     end
-    OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hTarget)
+    OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hFallback)
+end
+function OverthrowBot:Decision_CastTargetRandomAlly(hTarget, hAbility, hFallback)
+    local search_target = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[hAbility:GetAbilityName()] == true, hAbility)
+    search_target = search_target[math.random(#search_target)]
+    OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hFallback)
 end
 function OverthrowBot:Decision_CastTargetPoint(hTarget, hAbility)
     ExecuteOrderFromTable({
@@ -496,7 +503,6 @@ OverthrowBot.spell_filter_behavior = {
 OverthrowBot.spell_filter_direct = {
     -- Items
     ["item_radiance"] = true,
-    ["item_hurricane_pike"] = true,
 
     -- Misc
     ["generic_hidden"] = true,
@@ -558,6 +564,7 @@ OverthrowBot.spell_filter_direct = {
     -- Wisp
     ["wisp_spirits_in"] = true,
     ["wisp_spirits_out"] = true,
+    ["wisp_tether_break"] = true,
 }
 
 OverthrowBot.cannot_self_target = {
@@ -566,6 +573,7 @@ OverthrowBot.cannot_self_target = {
     ["earth_spirit_boulder_smash"] = true,
     ["necrolyte_death_seeker"] = true,
     ["earth_spirit_geomagnetic_grip"] = true,
+    ["wisp_tether"] = true,
 
     -- Items
     ["item_medallion_of_courage"] = true,
@@ -810,11 +818,15 @@ ListenToGameEvent("game_rules_state_change", function()
 	end
 end, nil)
 
+OverthrowBot.unit_ai_filter = {
+    ["npc_dota_courier"] = true,
+}
+
 ListenToGameEvent("npc_spawned", function(keys)
 	local unit = keys.entindex and EntIndexToHScript(keys.entindex)
 
 	if unit then
-		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or (unit:IsClone() or unit:IsTempestDouble())) then
+		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or (unit:IsClone() or unit:IsTempestDouble())) then
 			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end
 	end
