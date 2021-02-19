@@ -580,7 +580,6 @@ OverthrowBot.cannot_self_target = {
     ["item_solar_crest"] = true,
     ["item_sphere"] = true,
     ["item_shadow_amulet"] = true,
-    ["item_ethereal_blade"] = true,
 }
 
 --
@@ -760,6 +759,19 @@ end
 --
 -- Bot Modifier Listeners
 --
+OverthrowBot.team_hash = {
+    [DOTA_TEAM_GOODGUYS] = "radiant",
+    [DOTA_TEAM_BADGUYS] = "dire",
+    [DOTA_TEAM_CUSTOM_1] = "custom1",
+    [DOTA_TEAM_CUSTOM_2] = "custom2",
+    [DOTA_TEAM_CUSTOM_3] = "custom3",
+    [DOTA_TEAM_CUSTOM_4] = "custom4",
+    [DOTA_TEAM_CUSTOM_5] = "custom5",
+    [DOTA_TEAM_CUSTOM_6] = "custom6",
+    [DOTA_TEAM_CUSTOM_7] = "custom7",
+    [DOTA_TEAM_CUSTOM_8] = "custom8",
+}
+
 ListenToGameEvent("game_rules_state_change", function()
     if BUTTINGS and BUTTINGS.USE_BOTS == 0 then return end
     local state = GameRules:State_Get()
@@ -789,6 +801,7 @@ ListenToGameEvent("game_rules_state_change", function()
 	if state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
 		-- Adds the bot ai to the bots
 		if IsServer() then
+            
 			local all_heroes = LoadKeyValues("scripts/npc/herolist.txt")
 			local bot_choices = {}
 			for hero_name, allowed in pairs(all_heroes) do
@@ -796,6 +809,21 @@ ListenToGameEvent("game_rules_state_change", function()
 					table.insert(bot_choices, hero_name)
 				end
 			end
+            --[[
+            for selected_team = DOTA_TEAM_FIRST, DOTA_TEAM_CUSTOM_MAX do
+                if OverthrowBot.team_hash[selected_team] then
+                    for player_index = PlayerResource:GetPlayerCountForTeam(selected_team), GameRules:GetCustomGameTeamMaxPlayers(selected_team) - 1 do
+                        local choice_index = math.random(#bot_choices)
+                        local new_hero_name = bot_choices[choice_index]
+                        table.remove(bot_choices, choice_index)
+
+                        SendToConsole("dota_create_unit " .. new_hero_name .. " " .. OverthrowBot.team_hash[selected_team])
+                        PrecacheUnitByNameAsync(new_hero_name, function(...) end)
+                    end
+                end
+            end
+            ]]
+            
 			for ID = 1, PlayerResource:GetPlayerCount() do
 				-- If the player is actually a bot
 				local playerID = ID - 1
@@ -826,6 +854,10 @@ ListenToGameEvent("npc_spawned", function(keys)
 	local unit = keys.entindex and EntIndexToHScript(keys.entindex)
 
 	if unit then
+        if unit:GetPlayerOwnerID() > -1 and PlayerResource:IsFakeClient(unit:GetPlayerOwnerID()) and unit:IsRealHero() and not unit:HasModifier("modifier_bot") then
+            unit:AddNewModifier(unit, nil, "modifier_bot", {})
+        end
+
 		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or (unit:IsClone() or unit:IsTempestDouble())) then
 			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end

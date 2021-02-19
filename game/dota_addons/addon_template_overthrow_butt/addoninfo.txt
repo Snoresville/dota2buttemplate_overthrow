@@ -9,7 +9,7 @@
 		"desert_quintet",
 		"core_quartet",
 		"desert_octet",
-		"",
+		"overboss_anim",
 	]
 	IsPlayable = 1
 	HeroGuidesSupported = 1
@@ -43,6 +43,10 @@
 		{
 			MaxPlayers = 24
 			map = "core_quartet"
+		},
+		{
+			MaxPlayers = 10
+			map = "overboss_anim"
 		},
 	]
 	HideInTools = false
