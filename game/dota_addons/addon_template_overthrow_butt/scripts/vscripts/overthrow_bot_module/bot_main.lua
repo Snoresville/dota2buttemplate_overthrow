@@ -736,6 +736,7 @@ function OverthrowBot:CreateItemProgression()
         "item_travel_boots_2",
         "item_mask_of_madness",
         "item_phase_boots",
+        "item_helm_of_the_dominator_2",
     }
     
     local full_slots = {}
@@ -794,7 +795,8 @@ ListenToGameEvent("game_rules_state_change", function()
 					_G.player_chosen_heroes[PlayerResource:GetSelectedHeroName(playerID)] = true
 				end
 			end
-			SendToConsole("sm_gmode 1; dota_bot_populate")
+            GameRules:AddBotPlayerWithEntityScript("npc_dota_hero_pugna", "ass", DOTA_TEAM_GOODGUYS, "", false)
+			--SendToConsole("sm_gmode 1; dota_bot_populate")
 		end
 	end
 
@@ -824,6 +826,7 @@ ListenToGameEvent("game_rules_state_change", function()
             end
             ]]
             
+            --[[
 			for ID = 1, PlayerResource:GetPlayerCount() do
 				-- If the player is actually a bot
 				local playerID = ID - 1
@@ -842,6 +845,7 @@ ListenToGameEvent("game_rules_state_change", function()
 				end
 			end
             OverthrowBot.unit_spawn_ai_enabled = true
+            ]]
 		end
 	end
 end, nil)

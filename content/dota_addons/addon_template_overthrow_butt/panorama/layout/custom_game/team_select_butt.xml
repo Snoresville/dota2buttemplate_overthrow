@@ -117,7 +117,7 @@
 								<Label class="SettingsGroupTitle" text="Overthrow Exclusive"/>
 								<ToggleButton id="TEAM_COUNT_COMPENSATION" class="SettingsItem" text="Team Count Compensation"
 															onactivate="onPanelChange('TEAM_COUNT_COMPENSATION')"/>
-								<ToggleButton id="USE_BOTS" class="SettingsItem" text="Fill teams with Bots"
+								<ToggleButton id="USE_BOTS" class="SettingsItem" text="Fill teams with Bots (Cheats Mode Only)"
 															onactivate="onPanelChange('USE_BOTS')"/>
 						</Panel>
 						<Panel class="SettingsGroup w-31">
