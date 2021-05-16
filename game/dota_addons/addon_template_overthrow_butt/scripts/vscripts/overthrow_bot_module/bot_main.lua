@@ -892,7 +892,7 @@ ListenToGameEvent("npc_spawned", function(keys)
             end
         end
 
-		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (unit:IsIllusion() or unit:IsCreep()) then
+		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (unit:IsIllusion() or unit:IsSummoned()) then
 			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end
 	end
