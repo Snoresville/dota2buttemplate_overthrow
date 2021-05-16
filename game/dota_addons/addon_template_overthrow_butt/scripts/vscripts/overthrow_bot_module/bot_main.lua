@@ -490,6 +490,15 @@ OverthrowBot.Decision_Ability = {
         end
     end,
     ]]
+
+    slardar_slithereen_crush = function(self, hTarget, hAbility)
+        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("crush_radius"), DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        if #search > 0 then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end,
 }
 
 --
@@ -716,6 +725,8 @@ function OverthrowBot:CreateItemProgression()
         "item_lotus_orb",
         "item_black_king_bar",
         "item_blade_mail",
+        "item_eternal_shroud",
+        "item_bloodstone",
 
         -- Magical
         "item_gungir",
@@ -723,7 +734,7 @@ function OverthrowBot:CreateItemProgression()
         "item_wind_waker",
         "item_refresher",
         "item_solar_crest",
-        "item_necronomicon_3",
+        --"item_necronomicon_3",
         "item_dagon_5",
 
         -- Support
@@ -736,7 +747,6 @@ function OverthrowBot:CreateItemProgression()
         "item_travel_boots_2",
         "item_mask_of_madness",
         "item_phase_boots",
-        "item_helm_of_the_dominator_2",
     }
     
     local full_slots = {}
@@ -773,6 +783,14 @@ OverthrowBot.team_hash = {
     [DOTA_TEAM_CUSTOM_8] = "custom8",
 }
 
+function OverthrowBot:CreateBotName()
+    local name = ""
+    for _ = 1, 6 do
+        name = name..math.random(0, 9)
+    end
+    return name
+end
+
 ListenToGameEvent("game_rules_state_change", function()
     if BUTTINGS and BUTTINGS.USE_BOTS == 0 then return end
     local state = GameRules:State_Get()
@@ -795,7 +813,7 @@ ListenToGameEvent("game_rules_state_change", function()
 					_G.player_chosen_heroes[PlayerResource:GetSelectedHeroName(playerID)] = true
 				end
 			end
-            GameRules:AddBotPlayerWithEntityScript("npc_dota_hero_pugna", "ass", DOTA_TEAM_GOODGUYS, "", false)
+            
 			--SendToConsole("sm_gmode 1; dota_bot_populate")
 		end
 	end
@@ -811,20 +829,20 @@ ListenToGameEvent("game_rules_state_change", function()
 					table.insert(bot_choices, hero_name)
 				end
 			end
-            --[[
+
             for selected_team = DOTA_TEAM_FIRST, DOTA_TEAM_CUSTOM_MAX do
                 if OverthrowBot.team_hash[selected_team] then
-                    for player_index = PlayerResource:GetPlayerCountForTeam(selected_team), GameRules:GetCustomGameTeamMaxPlayers(selected_team) - 1 do
+                    print("team "..selected_team, "human count: "..PlayerResource:GetPlayerCountForTeam(selected_team), "required bot count: "..GameRules:GetCustomGameTeamMaxPlayers(selected_team) - PlayerResource:GetPlayerCountForTeam(selected_team))
+                    for _ = 1, GameRules:GetCustomGameTeamMaxPlayers(selected_team) - PlayerResource:GetPlayerCountForTeam(selected_team) do
                         local choice_index = math.random(#bot_choices)
                         local new_hero_name = bot_choices[choice_index]
                         table.remove(bot_choices, choice_index)
 
-                        SendToConsole("dota_create_unit " .. new_hero_name .. " " .. OverthrowBot.team_hash[selected_team])
+                        GameRules:AddBotPlayerWithEntityScript(new_hero_name, OverthrowBot:CreateBotName(), selected_team, "", false)
                         PrecacheUnitByNameAsync(new_hero_name, function(...) end)
                     end
                 end
             end
-            ]]
             
             --[[
 			for ID = 1, PlayerResource:GetPlayerCount() do
@@ -838,14 +856,14 @@ ListenToGameEvent("game_rules_state_change", function()
 						0.1, function() 
 							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 0.1 end
 							local new_hero = PlayerResource:ReplaceHeroWith(playerID, new_hero_name, PlayerResource:GetGold(playerID), 0)
-							new_hero:AddNewModifier(new_hero, nil, "modifier_bot", {})
 							PrecacheUnitByNameAsync(new_hero_name, function(...) end)
 						end
 					)
 				end
 			end
-            OverthrowBot.unit_spawn_ai_enabled = true
             ]]
+            OverthrowBot.unit_spawn_ai_enabled = true
+            
 		end
 	end
 end, nil)
@@ -854,15 +872,27 @@ OverthrowBot.unit_ai_filter = {
     ["npc_dota_courier"] = true,
 }
 
+function OverthrowBot:RelocateBotToSpawn(hero)
+    for _, spawn_point in pairs(Entities:FindAllByClassname("info_player_start_dota")) do
+        if spawn_point:GetTeam() == hero:GetTeam() then
+            FindClearSpaceForUnit(hero, spawn_point:GetAbsOrigin(), true)
+            return
+        end
+    end
+end
+
 ListenToGameEvent("npc_spawned", function(keys)
 	local unit = keys.entindex and EntIndexToHScript(keys.entindex)
 
 	if unit then
         if unit:GetPlayerOwnerID() > -1 and PlayerResource:IsFakeClient(unit:GetPlayerOwnerID()) and unit:IsRealHero() and not unit:HasModifier("modifier_bot") then
             unit:AddNewModifier(unit, nil, "modifier_bot", {})
+            if not OverthrowBot.unit_spawn_ai_enabled then
+                OverthrowBot:RelocateBotToSpawn(unit)
+            end
         end
 
-		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (not unit:IsRealHero() or (unit:IsClone() or unit:IsTempestDouble())) then
+		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (unit:IsIllusion() or unit:IsCreep()) then
 			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end
 	end
