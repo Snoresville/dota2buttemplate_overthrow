@@ -281,7 +281,7 @@ end
 
 -- Casting
 function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
-    if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
+    if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or (self.bot:GetTeamNumber() == hTarget:GetTeamNumber() or not hTarget:IsInvisible())) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -512,6 +512,15 @@ OverthrowBot.Decision_Ability = {
     furion_teleportation = function(self, hTarget, hAbility)
         if target:GetRangeToUnit(self.bot) > self.bot:Script_GetAttackRange() then
             OverthrowBot.Decision_CastTargetPoint(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end,
+
+    axe_berserkers_call = function(self, hTarget, hAbility)
+        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("radius") * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        if #search > 0 then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
         else
             OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
