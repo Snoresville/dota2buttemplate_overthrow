@@ -492,9 +492,26 @@ OverthrowBot.Decision_Ability = {
     ]]
 
     slardar_slithereen_crush = function(self, hTarget, hAbility)
-        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("crush_radius"), DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("crush_radius") * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
         if #search > 0 then
             OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end,
+
+    queenofpain_scream_of_pain = function(self, hTarget, hAbility)
+        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("area_of_effect") * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+        if #search > 0 then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end,
+
+    furion_teleportation = function(self, hTarget, hAbility)
+        if target:GetRangeToUnit(self.bot) > self.bot:Script_GetAttackRange() then
+            OverthrowBot.Decision_CastTargetPoint(self, hTarget, hAbility)
         else
             OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
@@ -512,6 +529,7 @@ OverthrowBot.spell_filter_behavior = {
 OverthrowBot.spell_filter_direct = {
     -- Items
     ["item_radiance"] = true,
+    ["item_branches"] = true,
 
     -- Misc
     ["generic_hidden"] = true,
@@ -791,6 +809,30 @@ function OverthrowBot:CreateBotName()
     return name
 end
 
+function OverthrowBot:CreateBots()
+    local all_heroes = LoadKeyValues("scripts/npc/herolist.txt")
+    local bot_choices = {}
+    for hero_name, allowed in pairs(all_heroes) do
+        if not _G.player_chosen_heroes[hero_name] and allowed ~= 0 then
+            table.insert(bot_choices, hero_name)
+        end
+    end
+
+    for selected_team = DOTA_TEAM_FIRST, DOTA_TEAM_CUSTOM_MAX do
+        if OverthrowBot.team_hash[selected_team] then
+            print("team "..selected_team, "human count: "..PlayerResource:GetPlayerCountForTeam(selected_team), "required bot count: "..GameRules:GetCustomGameTeamMaxPlayers(selected_team) - PlayerResource:GetPlayerCountForTeam(selected_team))
+            for _ = 1, GameRules:GetCustomGameTeamMaxPlayers(selected_team) - PlayerResource:GetPlayerCountForTeam(selected_team) do
+                local choice_index = math.random(#bot_choices)
+                local new_hero_name = bot_choices[choice_index]
+                table.remove(bot_choices, choice_index)
+
+                GameRules:AddBotPlayerWithEntityScript(new_hero_name, OverthrowBot:CreateBotName(), selected_team, "", false)
+                PrecacheUnitByNameAsync(new_hero_name, function(...) end)
+            end
+        end
+    end
+end
+
 ListenToGameEvent("game_rules_state_change", function()
     if BUTTINGS and BUTTINGS.USE_BOTS == 0 then return end
     local state = GameRules:State_Get()
@@ -814,7 +856,7 @@ ListenToGameEvent("game_rules_state_change", function()
 				end
 			end
             
-			--SendToConsole("sm_gmode 1; dota_bot_populate")
+            OverthrowBot:CreateBots()
 		end
 	end
 
@@ -822,46 +864,6 @@ ListenToGameEvent("game_rules_state_change", function()
 		-- Adds the bot ai to the bots
 		if IsServer() then
             
-			local all_heroes = LoadKeyValues("scripts/npc/herolist.txt")
-			local bot_choices = {}
-			for hero_name, allowed in pairs(all_heroes) do
-				if not _G.player_chosen_heroes[hero_name] and allowed ~= 0 then
-					table.insert(bot_choices, hero_name)
-				end
-			end
-
-            for selected_team = DOTA_TEAM_FIRST, DOTA_TEAM_CUSTOM_MAX do
-                if OverthrowBot.team_hash[selected_team] then
-                    print("team "..selected_team, "human count: "..PlayerResource:GetPlayerCountForTeam(selected_team), "required bot count: "..GameRules:GetCustomGameTeamMaxPlayers(selected_team) - PlayerResource:GetPlayerCountForTeam(selected_team))
-                    for _ = 1, GameRules:GetCustomGameTeamMaxPlayers(selected_team) - PlayerResource:GetPlayerCountForTeam(selected_team) do
-                        local choice_index = math.random(#bot_choices)
-                        local new_hero_name = bot_choices[choice_index]
-                        table.remove(bot_choices, choice_index)
-
-                        GameRules:AddBotPlayerWithEntityScript(new_hero_name, OverthrowBot:CreateBotName(), selected_team, "", false)
-                        PrecacheUnitByNameAsync(new_hero_name, function(...) end)
-                    end
-                end
-            end
-            
-            --[[
-			for ID = 1, PlayerResource:GetPlayerCount() do
-				-- If the player is actually a bot
-				local playerID = ID - 1
-				if PlayerResource:IsFakeClient(playerID) then
-					local choice_index = math.random(#bot_choices)
-					local new_hero_name = bot_choices[choice_index]
-					table.remove(bot_choices, choice_index)
-					Timers:CreateTimer(
-						0.1, function() 
-							if not PlayerResource:GetSelectedHeroEntity(playerID) then return 0.1 end
-							local new_hero = PlayerResource:ReplaceHeroWith(playerID, new_hero_name, PlayerResource:GetGold(playerID), 0)
-							PrecacheUnitByNameAsync(new_hero_name, function(...) end)
-						end
-					)
-				end
-			end
-            ]]
             OverthrowBot.unit_spawn_ai_enabled = true
             
 		end
