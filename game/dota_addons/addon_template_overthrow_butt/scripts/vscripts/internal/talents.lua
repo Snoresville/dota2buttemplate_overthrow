@@ -4,6 +4,8 @@ ListenToGameEvent("dota_player_learned_ability",function(keys)
 
 	if (abilityname:find("special_bonus_") == 1) then
 		local hero = player:GetAssignedHero()
+		if not hero then return end
+
 		local ability = hero:FindAbilityByName(abilityname)
 		local modifiername = "modifier_" .. abilityname
 		local file = "talents/"..modifiername

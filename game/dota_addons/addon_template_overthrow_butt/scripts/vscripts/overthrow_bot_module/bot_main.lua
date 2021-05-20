@@ -219,9 +219,11 @@ function OverthrowBot:TargetDecision(hTarget)
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
-    if abilityQueued then
+    if abilityQueued and self.bot:CanEntityBeSeenByMyTeam(hTarget) then
         if OverthrowBot.Decision_Ability[abilityQueued:GetAbilityName()] then
             OverthrowBot.Decision_Ability[abilityQueued:GetAbilityName()](self, hTarget, abilityQueued)
+        elseif OverthrowBot.spell_cast_nearby[abilityQueued:GetAbilityName()] then
+            OverthrowBot:Decision_CastTargetNoneNearby(self, hTarget, abilityQueued, abilityQueued:GetSpecialValueFor(OverthrowBot.spell_cast_nearby[abilityQueued:GetAbilityName()]) * 0.9)
         elseif HasBit( abilityQueued:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
             OverthrowBot.Decision_Tree(self, hTarget, abilityQueued)
         elseif HasBit( abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_TOGGLE) then
@@ -281,7 +283,7 @@ end
 
 -- Casting
 function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
-    if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or (self.bot:GetTeamNumber() == hTarget:GetTeamNumber() or not hTarget:IsInvisible())) or not hTarget:IsMagicImmune()) then
+    if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -316,6 +318,19 @@ function OverthrowBot:Decision_CastTargetPoint(hTarget, hAbility)
 end
 function OverthrowBot:Decision_CastTargetNone(hTarget, hAbility)
     if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
+        ExecuteOrderFromTable({
+            UnitIndex = self.bot:entindex(),
+            OrderType = DOTA_UNIT_ORDER_CAST_NO_TARGET,
+            AbilityIndex = hAbility:entindex()
+        })
+    else
+        OverthrowBot.Decision_AttackTarget(self, hTarget)
+    end
+end
+
+function OverthrowBot:Decision_CastTargetNoneNearby(hTarget, hAbility, radius)
+    local search = OverthrowBot.GetClosestUnits(self, radius, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
+    if #search > 0 then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_NO_TARGET,
@@ -400,21 +415,11 @@ OverthrowBot.Decision_Ability = {
     end,
 
     templar_assassin_meld = function(self, hTarget, hAbility)
-        local search = OverthrowBot.GetClosestUnits(self, self.bot:Script_GetAttackRange() * 0.8, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
-        if #search > 0 then
-            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
-        else
-            OverthrowBot.Decision_AttackTarget(self, hTarget)
-        end
+        OverthrowBot.Decision_CastTargetNoneNearby(self, hTarget, hAbility, self.bot:Script_GetAttackRange() * 0.8)
     end,
 
     rattletrap_power_cogs = function(self, hTarget, hAbility)
-        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("cogs_radius") * 0.75, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
-        if #search > 0 then
-            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
-        else
-            OverthrowBot.Decision_AttackTarget(self, hTarget)
-        end
+        OverthrowBot.Decision_CastTargetNoneNearby(self, hTarget, hAbility, hAbility:GetSpecialValueFor("cogs_radius") * 0.75)
     end,
 
     hoodwink_scurry = function(self, hTarget, hAbility)
@@ -491,40 +496,21 @@ OverthrowBot.Decision_Ability = {
     end,
     ]]
 
-    slardar_slithereen_crush = function(self, hTarget, hAbility)
-        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("crush_radius") * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
-        if #search > 0 then
-            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
-        else
-            OverthrowBot.Decision_AttackTarget(self, hTarget)
-        end
-    end,
-
-    queenofpain_scream_of_pain = function(self, hTarget, hAbility)
-        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("area_of_effect") * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
-        if #search > 0 then
-            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
-        else
-            OverthrowBot.Decision_AttackTarget(self, hTarget)
-        end
-    end,
-
     furion_teleportation = function(self, hTarget, hAbility)
-        if target:GetRangeToUnit(self.bot) > self.bot:Script_GetAttackRange() then
+        if hTarget:GetRangeToUnit(self.bot) > self.bot:Script_GetAttackRange() then
             OverthrowBot.Decision_CastTargetPoint(self, hTarget, hAbility)
         else
             OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
+}
 
-    axe_berserkers_call = function(self, hTarget, hAbility)
-        local search = OverthrowBot.GetClosestUnits(self, hAbility:GetSpecialValueFor("radius") * 0.9, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
-        if #search > 0 then
-            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
-        else
-            OverthrowBot.Decision_AttackTarget(self, hTarget)
-        end
-    end,
+OverthrowBot.spell_cast_nearby = {
+    slardar_slithereen_crush = crush_radius,
+    queenofpain_scream_of_pain = area_of_effect,
+    axe_berserkers_call = radius,
+    sandking_sand_storm = sand_storm_radius,
+    venomancer_poison_nova = radius,
 }
 
 --
@@ -903,7 +889,7 @@ ListenToGameEvent("npc_spawned", function(keys)
             end
         end
 
-		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (unit:IsIllusion() or unit:IsSummoned()) then
+		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and PlayerResource:IsFakeClient(unit:GetPlayerOwnerID()) and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (unit:IsIllusion() or unit:IsSummoned()) then
 			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
 		end
 	end
