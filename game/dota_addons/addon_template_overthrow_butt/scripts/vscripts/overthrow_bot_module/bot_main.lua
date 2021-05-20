@@ -511,6 +511,8 @@ OverthrowBot.spell_cast_nearby = {
     axe_berserkers_call = radius,
     sandking_sand_storm = sand_storm_radius,
     venomancer_poison_nova = radius,
+    pangolier_shield_crash = jump_horizontal_distance,
+    item_shivas_guard = blast_radius,
 }
 
 --
@@ -615,7 +617,7 @@ function OverthrowBot:CanSeeEnemies()
         FIND_UNITS_EVERYWHERE, 
         DOTA_UNIT_TARGET_TEAM_ENEMY, 
         DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC, 
-        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES, 
+        DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE + DOTA_UNIT_TARGET_FLAG_NO_INVIS + DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES + DOTA_UNIT_TARGET_FLAG_NOT_ILLUSIONS, 
         FIND_CLOSEST, false)
 
     return #search > 0 and search or false 
