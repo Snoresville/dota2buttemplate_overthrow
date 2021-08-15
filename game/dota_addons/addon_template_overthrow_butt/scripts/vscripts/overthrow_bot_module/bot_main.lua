@@ -113,7 +113,12 @@ end
 -- Bot Modifier Script
 --
 
+function print_debug(unit, message)
+    print("[overthrow bot] "..unit:GetUnitName().." - "..message)
+end
+
 function OverthrowBot:OnIntervalThink()
+    print_debug(self.bot, "onintervalthink")
     if not self.bot or self.bot:IsNull() then return end -- If the bot is missing
     if self.bot:HasAttackCapability() == false then return end -- If this bot is practically useless
     if not self.bot:IsAlive() then 
@@ -148,6 +153,7 @@ function OverthrowBot:OnIntervalThink()
 end
 
 function OverthrowBot:GetCastableAbilities()
+    print_debug(self.bot, "getcastableabilities")
     local abilities = {}
 
     -- Base Case
@@ -208,6 +214,7 @@ function OverthrowBot:GetCastableAbilities()
 end
 
 function OverthrowBot:TargetDecision(hTarget)
+    print_debug(self.bot, "targetdecision")
     local castableAbilities = OverthrowBot.GetCastableAbilities(self)
     local abilityQueued
     if #castableAbilities > 0 then
@@ -215,7 +222,7 @@ function OverthrowBot:TargetDecision(hTarget)
     end
 
     if abilityQueued then
-        --print("A BOT IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
+        print(self.bot:GetUnitName() .. " IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
@@ -253,6 +260,7 @@ end
 
 -- Attacking
 function OverthrowBot:Decision_AttackTarget(hTarget)
+    print_debug(self.bot, "decision-attacktarget")
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if hTarget:IsAlive() and not hTarget:IsAttackImmune() then
         ExecuteOrderFromTable({
@@ -265,6 +273,7 @@ function OverthrowBot:Decision_AttackTarget(hTarget)
     end
 end
 function OverthrowBot:Decision_AttackMove(hTarget)
+    print_debug(self.bot, "decision-attackmove")
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if self.bot:HasMovementCapability() then
         ExecuteOrderFromTable({
@@ -283,6 +292,7 @@ end
 
 -- Casting
 function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
+    print_debug(self.bot, "decision-casttargetentity")
     if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -295,6 +305,7 @@ function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
     end
 end
 function OverthrowBot:Decision_CastTargetPreferEnemies(hTarget, hAbility, hFallback)
+    print_debug(self.bot, "decision-casttargetpreferenemies")
     local search_target = OverthrowBot.GetClosestUnits(self, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, hAbility:GetAbilityTargetType())
     if #search_target > 0 and RollPercentage(80) then
         search_target = search_target[1]
@@ -304,6 +315,7 @@ function OverthrowBot:Decision_CastTargetPreferEnemies(hTarget, hAbility, hFallb
     OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hFallback)
 end
 function OverthrowBot:Decision_CastTargetRandomAlly(hTarget, hAbility, hFallback)
+    print_debug(self.bot, "decision-casttargetrandomally")
     local search_target = OverthrowBot.GetClosestUnit(self, OverthrowBot.cannot_self_target[hAbility:GetAbilityName()] == true, hAbility)
     search_target = search_target[math.random(#search_target)]
     OverthrowBot.Decision_CastTargetEntity(self, search_target, hAbility, hFallback)
@@ -317,6 +329,7 @@ function OverthrowBot:Decision_CastTargetPoint(hTarget, hAbility)
     })
 end
 function OverthrowBot:Decision_CastTargetNone(hTarget, hAbility)
+    print_debug(self.bot, "decision-casttargetnone")
     if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
@@ -329,8 +342,8 @@ function OverthrowBot:Decision_CastTargetNone(hTarget, hAbility)
 end
 
 function OverthrowBot:Decision_CastTargetNoneNearby(hTarget, hAbility, radius)
-    local search = OverthrowBot.GetClosestUnits(self, radius, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
-    if #search > 0 then
+    print_debug(self.bot, "decision-casttargetnonenearby")
+    if self.bot:GetRangeToUnit(hTarget) <= radius then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_NO_TARGET,
@@ -343,6 +356,7 @@ end
 
 -- Misc
 function OverthrowBot:Decision_GatherAtCenter()
+    print_debug(self.bot, "decision-gatheratcenter")
     if self.bot:IsAttacking() then return end                   -- Bots won't be making second choices before throwing hands
     if self.bot:HasMovementCapability() then
         ExecuteOrderFromTable({
@@ -354,6 +368,7 @@ function OverthrowBot:Decision_GatherAtCenter()
 end
 
 function OverthrowBot:Decision_Tree(hTarget, hAbility)
+    print_debug(self.bot, "decision-tree")
     local trees = GridNav:GetAllTreesAroundPoint(self.bot:GetAbsOrigin(), hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), false)
     local tree
     for _, tree_check in pairs(trees) do
@@ -381,6 +396,7 @@ function OverthrowBot:Decision_Tree(hTarget, hAbility)
     end
 end
 function OverthrowBot:Decision_Toggle(hTarget, hAbility)
+    print_debug(self.bot, "decision-toggle")
     -- Turn on the toggles
     if hAbility:IsToggle() and hAbility:GetToggleState() == false then
         hAbility:OnToggle()
@@ -389,6 +405,7 @@ function OverthrowBot:Decision_Toggle(hTarget, hAbility)
     end
 end
 function OverthrowBot:Decision_CastTargetPointAlly(hFallback, hAbility) 
+    print_debug(self.bot, "decision-casttargetpointally")
     local targets = OverthrowBot.GetClosestUnits(self, hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus(), DOTA_UNIT_TARGET_TEAM_FRIENDLY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_BASIC)
     local hTarget = targets[math.random(#targets)]
         if hTarget then
@@ -451,6 +468,7 @@ OverthrowBot.Decision_Ability = {
     end,
 
     invoker_invoke = function(self, hTarget, hAbility)
+        print_debug(self.bot, "decision-invoke")
         local orbs = {}
         for i = 0, 2 do
             if self.bot:GetAbilityByIndex(i):GetLevel() > 0 then
@@ -513,6 +531,9 @@ OverthrowBot.spell_cast_nearby = {
     venomancer_poison_nova = radius,
     pangolier_shield_crash = jump_horizontal_distance,
     item_shivas_guard = blast_radius,
+    ursa_earthshock = hop_distance,
+    tidehunter_ravage = speed,
+    razor_plasma_field = radius,
 }
 
 --
@@ -610,6 +631,7 @@ OverthrowBot.cannot_self_target = {
 -- Search Functions
 --
 function OverthrowBot:CanSeeEnemies()
+    print_debug(self.bot, "canseeenemies")
     local search = FindUnitsInRadius(
         self.bot:GetTeam(), 
         self.bot:GetAbsOrigin(), 
@@ -624,6 +646,7 @@ function OverthrowBot:CanSeeEnemies()
 end
 
 function OverthrowBot:GetClosestUnit(notSelfTarget, hAbility)
+    print_debug(self.bot, "getclosestunit")
     local search_radius = (hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_CREEP or hAbility:GetAbilityTargetType() == DOTA_UNIT_TARGET_BASIC) and (hAbility:GetCastRange(nil, nil) + self.bot:GetCastRangeBonus()) or FIND_UNITS_EVERYWHERE
     local search = OverthrowBot.GetClosestUnits(self, search_radius, hAbility:GetAbilityTargetTeam(), hAbility:GetAbilityTargetType())
 
@@ -639,6 +662,7 @@ function OverthrowBot:GetClosestUnit(notSelfTarget, hAbility)
 end
 
 function OverthrowBot:GetClosestUnits(search_radius, flags_team, flags_type)
+    print_debug(self.bot, "getclosestunitS")
     return FindUnitsInRadius(
         self.bot:GetTeam(), 
         self.bot:GetAbsOrigin(), 
@@ -654,6 +678,7 @@ end
 -- Hero Progression
 --
 function OverthrowBot:SpendAbilityPoints()
+    print_debug(self.bot, "spendabilitypoints")
     local basic = {self.bot:GetAbilityByIndex(0), self.bot:GetAbilityByIndex(1), self.bot:GetAbilityByIndex(2)}
     local ultimate = self.bot:GetAbilityByIndex(5)
     local level = self.bot:GetLevel()
@@ -687,6 +712,7 @@ function OverthrowBot:SpendAbilityPoints()
 end
 
 function OverthrowBot:ShopForItems()
+    print_debug(self.bot, "shopforitems")
     if not self.item_progression or #self.item_progression == 0 then return end
 
     local target_item = self.item_progression[1]
@@ -699,6 +725,7 @@ function OverthrowBot:ShopForItems()
 end
 
 function OverthrowBot:CreateItemProgression()
+    print_debug(self.bot, "createitemprogression")
     --local hero_build_name = string.gsub(self:GetParent():GetUnitName(), "npc_dota_hero", "default")
     --local hero_build = LoadKeyValues("itembuilds/" .. hero_build_name .. ".txt")["Items"]
     --for k,v in pairs(hero_build) do print(k,v) end

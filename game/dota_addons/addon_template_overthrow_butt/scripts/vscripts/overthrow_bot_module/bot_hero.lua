@@ -17,6 +17,8 @@ function modifier_bot:GetAttributes()
 end
 
 function modifier_bot:OnCreated()
+    if self:GetParent():HasModifier("modifier_monkey_king_fur_army_soldier_hidden") then self:Destroy() end
+
     if IsServer() then
         self.bot = self:GetParent()
         for ID = 1, PlayerResource:GetPlayerCount() do
