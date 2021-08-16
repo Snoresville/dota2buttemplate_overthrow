@@ -119,6 +119,7 @@ end
 
 function OverthrowBot:OnIntervalThink()
     print_debug(self.bot, "onintervalthink")
+    --if GameRules:State_Get() < DOTA_GAMERULES_STATE_PRE_GAME then return end
     if not self.bot or self.bot:IsNull() then return end -- If the bot is missing
     if self.bot:HasAttackCapability() == false then return end -- If this bot is practically useless
     if not self.bot:IsAlive() then 

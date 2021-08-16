@@ -126,6 +126,8 @@
 								<Label class="SettingsGroupTitle" text="Winning Conditions"/>
 								<ToggleButton id="NO_KILL_LIMIT" class="SettingsItem" text="No Kill Limit"
 															onactivate="onPanelChange('NO_KILL_LIMIT')"/>
+								<ToggleButton id="NO_TIME_LIMIT" class="SettingsItem" text="No Time Limit"
+															onactivate="onPanelChange('NO_TIME_LIMIT')"/>
 								<Panel class="SettingsItem TextEntryFrame">
 										<TextEntry onfocus="onfocus('ALT_KILL_LIMIT')" oninputsubmit="onPanelChange('ALT_KILL_LIMIT')"
 																onblur="onPanelChange('ALT_KILL_LIMIT')" id="ALT_KILL_LIMIT" class="SettingsItem"

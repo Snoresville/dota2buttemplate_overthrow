@@ -153,8 +153,11 @@ function COverthrowGameMode:OnGameRulesStateChange()
 
 	if nNewState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
 		--print( "OnGameRulesStateChange: Game In Progress" )
-		self.countdownEnabled = true
-		CustomGameEventManager:Send_ServerToAllClients( "show_timer", {} )
+		
+		if BUTTINGS.NO_TIME_LIMIT ~= 1 then
+			self.countdownEnabled = true
+			CustomGameEventManager:Send_ServerToAllClients( "show_timer", {} )
+		end
 		DoEntFire( "center_experience_ring_particles", "Start", "0", 0, self, self  )
 	end
 end
