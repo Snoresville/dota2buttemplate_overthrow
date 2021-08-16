@@ -45,7 +45,7 @@ BUTTINGS = {
 	ALT_KILL_LIMIT = 30,               	-- Kills for alternative winnning
 	ALT_TIME_LIMIT = 6,                	-- Timer for alternative winning
 	OVERTIME_KILL_INCREASE = 1,
-	NO_KILL_LIMIT = 0,
+	NO_KILL_LIMIT = 1,
 
 	BUYBACK_RULES = 1,                  -- 0 = normal, 1 = use buyback restrictions
 	BUYBACK_LIMIT = 999,                -- Max amount of buybacks

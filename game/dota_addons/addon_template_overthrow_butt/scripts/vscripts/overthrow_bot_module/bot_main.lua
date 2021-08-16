@@ -230,7 +230,7 @@ function OverthrowBot:TargetDecision(hTarget)
         if OverthrowBot.Decision_Ability[abilityQueued:GetAbilityName()] then
             OverthrowBot.Decision_Ability[abilityQueued:GetAbilityName()](self, hTarget, abilityQueued)
         elseif OverthrowBot.spell_cast_nearby[abilityQueued:GetAbilityName()] then
-            OverthrowBot:Decision_CastTargetNoneNearby(self, hTarget, abilityQueued, abilityQueued:GetSpecialValueFor(OverthrowBot.spell_cast_nearby[abilityQueued:GetAbilityName()]) * 0.9)
+            OverthrowBot.Decision_CastTargetNoneNearby(self, hTarget, abilityQueued, abilityQueued:GetSpecialValueFor(OverthrowBot.spell_cast_nearby[abilityQueued:GetAbilityName()]) * 0.9)
         elseif HasBit( abilityQueued:GetAbilityTargetType(), DOTA_UNIT_TARGET_TREE ) then
             OverthrowBot.Decision_Tree(self, hTarget, abilityQueued)
         elseif HasBit( abilityQueued:GetBehavior(), DOTA_ABILITY_BEHAVIOR_TOGGLE) then
@@ -524,17 +524,17 @@ OverthrowBot.Decision_Ability = {
 }
 
 OverthrowBot.spell_cast_nearby = {
-    slardar_slithereen_crush = crush_radius,
-    queenofpain_scream_of_pain = area_of_effect,
-    axe_berserkers_call = radius,
-    sandking_sand_storm = sand_storm_radius,
-    venomancer_poison_nova = radius,
-    pangolier_shield_crash = jump_horizontal_distance,
-    item_shivas_guard = blast_radius,
-    ursa_earthshock = hop_distance,
-    tidehunter_ravage = speed,
-    razor_plasma_field = radius,
-    faceless_void_time_dilation = radius,
+    slardar_slithereen_crush = "crush_radius",
+    queenofpain_scream_of_pain = "area_of_effect",
+    axe_berserkers_call = "radius",
+    sandking_sand_storm = "sand_storm_radius",
+    venomancer_poison_nova = "radius",
+    pangolier_shield_crash = "jump_horizontal_distance",
+    item_shivas_guard = "blast_radius",
+    ursa_earthshock = "hop_distance",
+    tidehunter_ravage = "speed",
+    razor_plasma_field = "radius",
+    brewmaster_thunder_clap = "radius",
 }
 
 --

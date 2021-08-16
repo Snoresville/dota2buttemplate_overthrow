@@ -17,9 +17,7 @@ function modifier_bot:GetAttributes()
 end
 
 function modifier_bot:OnCreated()
-    if self:GetParent():HasModifier("modifier_monkey_king_fur_army_soldier") then self:Destroy() end
     if self:GetParent():HasModifier("modifier_monkey_king_fur_army_soldier_hidden") then self:Destroy() end
-    if self:GetParent():HasModifier("modifier_monkey_king_fur_army_soldier_inactive") then self:Destroy() end
 
     if IsServer() then
         self.bot = self:GetParent()
