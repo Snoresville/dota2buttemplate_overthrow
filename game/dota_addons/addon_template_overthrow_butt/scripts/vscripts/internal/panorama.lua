@@ -32,6 +32,16 @@ end, nil)
 local l0 = CustomGameEventManager:RegisterListener("butt_setting_changed", function(_,kv)
 	BUTTINGS[kv.setting] = kv.value
 	print(kv.setting,":",kv.value)
+
+	if kv.setting == "SPECTATOR_MODE" then
+		if kv.value == 1 then
+			GameRules:GetGameModeEntity():SetDraftingHeroPickSelectTimeOverride( 1 )
+			GameRules:SetHeroSelectPenaltyTime(0)
+		else
+			GameRules:GetGameModeEntity():SetDraftingHeroPickSelectTimeOverride( 90 )
+			GameRules:SetHeroSelectPenaltyTime(20)
+		end
+	end
 end)
 
 local l1 =ListenToGameEvent("game_rules_state_change", function()

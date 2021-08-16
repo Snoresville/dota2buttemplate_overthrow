@@ -41,6 +41,17 @@ ListenToGameEvent("game_rules_state_change", function()
 			end
 		end
 		GameRules:GetGameModeEntity():SetFreeCourierModeEnabled(true)
+
+		if BUTTINGS.SPECTATOR_MODE == 1 then
+			GameRules:SetCustomGameTeamMaxPlayers( 1, 100 )
+			--AddFOWViewer(1, Vector(0,0,0), 999999, 999999, false)
+			GameRules:GetGameModeEntity():SetCameraDistanceOverride( 2000 )
+			for p=0,DOTA_MAX_PLAYERS do
+				if (PlayerResource:IsValidPlayer(p)) and not (PlayerResource:IsFakeClient(p)) then
+					PlayerResource:SetCustomTeamAssignment(p, 1)
+				end
+			end
+		end
 	end
 
 	if (GameRules:State_Get()==DOTA_GAMERULES_STATE_STRATEGY_TIME) then

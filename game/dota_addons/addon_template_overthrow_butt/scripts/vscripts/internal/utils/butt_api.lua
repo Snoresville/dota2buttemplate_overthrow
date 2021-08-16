@@ -358,5 +358,5 @@ function Butt:CreateSideShop(location)
 end
 
 function IsMonkeyKingClone(unit)
-	return unit:HasModifier("modifier_monkey_king_fur_army_soldier_hidden")
+	return unit:HasModifier("modifier_monkey_king_fur_army_soldier")
 end

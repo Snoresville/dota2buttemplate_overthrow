@@ -50,6 +50,8 @@ BUTTINGS = {
 	BUYBACK_RULES = 1,                  -- 0 = normal, 1 = use buyback restrictions
 	BUYBACK_LIMIT = 999,                -- Max amount of buybacks
 	BUYBACK_COOLDOWN = 1,             	-- Cooldown for buyback
+
+	SPECTATOR_MODE = 0,					-- Bots go wild
 }
 
 function BUTTINGS.ALTERNATIVE_XP_TABLE()	-- xp values if MAX_LEVEL is different than 30

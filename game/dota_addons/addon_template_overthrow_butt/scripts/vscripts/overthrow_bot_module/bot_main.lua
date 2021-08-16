@@ -534,6 +534,7 @@ OverthrowBot.spell_cast_nearby = {
     ursa_earthshock = hop_distance,
     tidehunter_ravage = speed,
     razor_plasma_field = radius,
+    faceless_void_time_dilation = radius,
 }
 
 --
@@ -677,11 +678,22 @@ end
 --
 -- Hero Progression
 --
+OverthrowBot.levellable_basic_exceptions = {
+    nevermore_necromastery = true,
+    nevermore_dark_lord = true,
+}
 function OverthrowBot:SpendAbilityPoints()
     print_debug(self.bot, "spendabilitypoints")
     local basic = {self.bot:GetAbilityByIndex(0), self.bot:GetAbilityByIndex(1), self.bot:GetAbilityByIndex(2)}
     local ultimate = self.bot:GetAbilityByIndex(5)
     local level = self.bot:GetLevel()
+
+    for i = 3,4 do
+        local ability_name = self.bot:GetAbilityByIndex(i):GetAbilityName()
+        if ability_name ~= "generic_hidden" and OverthrowBot.levellable_basic_exceptions[ability_name] then
+            table.insert(basic, self.bot:GetAbilityByIndex(i))
+        end
+    end
 
     -- Upgrade Ultimate
     if level % 6 == 0 then
@@ -699,7 +711,7 @@ function OverthrowBot:SpendAbilityPoints()
 
     -- Upgrade Ability
     while self.bot:GetAbilityPoints() > 0 do
-        local basic_chosen = basic[math.random(3)]
+        local basic_chosen = basic[math.random(#basic)]
         if basic_chosen:GetLevel() * 2 < level then -- Prevents level 1 abilites from getting levelled up at level 2 and etc.
             self.bot:UpgradeAbility(basic_chosen)
 

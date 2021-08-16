@@ -1,6 +1,6 @@
 <root>
 	<styles>
-			<include src="file://{resources}/styles/dotastyles.css"/>
+			<include src="s2r://panorama/styles/dotastyles.vcss_c"/>
 			<include src="file://{resources}/styles/custom_game/team_select_butt.css"/>
 	</styles>
 	<scripts>
@@ -117,8 +117,10 @@
 								<Label class="SettingsGroupTitle" text="Overthrow Exclusive"/>
 								<ToggleButton id="TEAM_COUNT_COMPENSATION" class="SettingsItem" text="Team Count Compensation"
 															onactivate="onPanelChange('TEAM_COUNT_COMPENSATION')"/>
-								<ToggleButton id="USE_BOTS" class="SettingsItem" text="Fill teams with Bots (Cheats Mode Only)"
+								<ToggleButton id="USE_BOTS" class="SettingsItem" text="Fill teams with Bots"
 															onactivate="onPanelChange('USE_BOTS')"/>
+								<ToggleButton id="SPECTATOR_MODE" class="SettingsItem" text="Spectator Mode"
+															onactivate="onPanelChange('SPECTATOR_MODE')"/>
 						</Panel>
 						<Panel class="SettingsGroup w-31">
 								<Label class="SettingsGroupTitle" text="Winning Conditions"/>
