@@ -38,7 +38,7 @@ function OverthrowBot:GetAllItemComponents(item)
 		--print(recipe_name)
 		local subcomponents = string_split(item_requirements, ";")
 		for i = 1, #subcomponents do
-			subcomponents[i] = string_split(subcomponents[i], "*")[1]
+			subcomponents[i] = string.gsub(subcomponents[i], "*", "")
 		end
 		table.insert(subcomponents, recipe_name)
 
@@ -66,21 +66,6 @@ end
 
 function OverthrowBot:ItemName_GetID(item_name)
 	return OverthrowBot.item_kv[item_name]["ID"]
-end
-
-function OverthrowBot:CanCastOnSpellImmune(hAbility)
-	if not hAbility then return false end
-
-	local spell_immunity_type
-	if hAbility:IsItem() then
-		spell_immunity_type = OverthrowBot.item_kv[hAbility:GetAbilityName()]["SpellImmunityType"]
-	else
-		spell_immunity_type = OverthrowBot.ability_kv[hAbility:GetAbilityName()]["SpellImmunityType"]
-	end
-
-	if not spell_immunity_type or spell_immunity_type == "SPELL_IMMUNITY_ENEMIES_NO" then return false end
-
-	return true
 end
 
 function CDOTABaseAbility:HasCharges()
@@ -119,6 +104,7 @@ end
 
 function OverthrowBot:OnIntervalThink()
     print_debug(self.bot, "onintervalthink")
+    if GameRules:State_Get() < DOTA_GAMERULES_STATE_PRE_GAME then return end
     if not self.bot or self.bot:IsNull() then return end -- If the bot is missing
     if self.bot:HasAttackCapability() == false then return end -- If this bot is practically useless
     if not self.bot:IsAlive() then 
@@ -222,7 +208,7 @@ function OverthrowBot:TargetDecision(hTarget)
     end
 
     if abilityQueued then
-        print(self.bot:GetUnitName() .. " IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
+        --print(self.bot:GetUnitName() .. " IS ATTEMPTING TO CAST: " .. abilityQueued:GetAbilityName())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCooldownTimeRemaining())
         --print(abilityQueued:GetAbilityName(), abilityQueued:GetCurrentAbilityCharges())
     end
@@ -293,7 +279,7 @@ end
 -- Casting
 function OverthrowBot:Decision_CastTargetEntity(hTarget, hAbility, hFallback)
     print_debug(self.bot, "decision-casttargetentity")
-    if hTarget and hTarget:IsAlive() and ((OverthrowBot:CanCastOnSpellImmune(hAbility) or self.bot:GetTeamNumber() == hTarget:GetTeamNumber()) or not hTarget:IsMagicImmune()) then
+    if hTarget and UnitFilter(hTarget, hAbility:GetAbilityTargetTeam(), hAbility:GetAbilityTargetType(), hAbility:GetAbilityTargetFlags(), self.bot:GetTeamNumber()) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_TARGET,
@@ -689,9 +675,12 @@ function OverthrowBot:SpendAbilityPoints()
     local level = self.bot:GetLevel()
 
     for i = 3,4 do
-        local ability_name = self.bot:GetAbilityByIndex(i):GetAbilityName()
-        if ability_name ~= "generic_hidden" and OverthrowBot.levellable_basic_exceptions[ability_name] then
-            table.insert(basic, self.bot:GetAbilityByIndex(i))
+        local ability = self.bot:GetAbilityByIndex(i)
+        if ability then
+            local ability_name = ability:GetAbilityName()
+            if ability_name ~= "generic_hidden" and OverthrowBot.levellable_basic_exceptions[ability_name] then
+                table.insert(basic, self.bot:GetAbilityByIndex(i))
+            end
         end
     end
 
