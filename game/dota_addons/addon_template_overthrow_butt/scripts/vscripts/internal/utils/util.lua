@@ -193,6 +193,13 @@ function table.includes(t, value)
 	return false
 end
 
+function table.shuffle(tbl)
+	for i = #tbl, 2, -1 do
+	  local j = math.random(i)
+	  tbl[i], tbl[j] = tbl[j], tbl[i]
+	end
+end
+
 -------------------------- FILE COPY FUNCTIONS -------------------------
 
 function copyFile(fromFile, toFile)

@@ -99,7 +99,7 @@ end
 --
 
 function print_debug(unit, message)
-    print("[overthrow bot] "..unit:GetUnitName().." - "..message)
+    --print("[overthrow bot] "..unit:GetUnitName().." - "..message)
 end
 
 function OverthrowBot:OnIntervalThink()
@@ -316,7 +316,7 @@ function OverthrowBot:Decision_CastTargetPoint(hTarget, hAbility)
 end
 function OverthrowBot:Decision_CastTargetNone(hTarget, hAbility)
     print_debug(self.bot, "decision-casttargetnone")
-    if (hAbility:GetCastRange(nil, nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(nil, nil)) then
+    if (hAbility:GetCastRange(hTarget:GetAbsOrigin(), nil) == 0) or (self.bot:GetRangeToUnit(hTarget) <= hAbility:GetCastRange(hTarget:GetAbsOrigin(), nil)) then
         ExecuteOrderFromTable({
             UnitIndex = self.bot:entindex(),
             OrderType = DOTA_UNIT_ORDER_CAST_NO_TARGET,
@@ -668,6 +668,16 @@ OverthrowBot.levellable_basic_exceptions = {
     nevermore_necromastery = true,
     nevermore_dark_lord = true,
 }
+OverthrowBot.talent_levels = {
+    [17] = true,
+    [19] = true,
+    [21] = true,
+    [22] = true,
+    [23] = true,
+    [24] = true,
+    [26] = true
+}
+
 function OverthrowBot:SpendAbilityPoints()
     print_debug(self.bot, "spendabilitypoints")
     local basic = {self.bot:GetAbilityByIndex(0), self.bot:GetAbilityByIndex(1), self.bot:GetAbilityByIndex(2)}
@@ -685,23 +695,33 @@ function OverthrowBot:SpendAbilityPoints()
     end
 
     -- Upgrade Ultimate
-    if level % 6 == 0 then
+    if level % 6 == 0 and ultimate:GetLevel() < ultimate:GetMaxLevel() and self.bot:GetAbilityPoints() > 0 then
         self.bot:UpgradeAbility(ultimate)
     end
 
     -- Upgrade Talent
-    if level >= (2 + (self.talentlevel or 0)) * 5 and level < 30 then
-        self.talentlevel = (self.talentlevel or 0) + 1
-
-        local talent_bar = level / 5
+    self.talentlevel = self.talentlevel or 0
+    if self.talentlevel < 4 and level >= (2 + (self.talentlevel or 0)) * 5 and self.bot:GetAbilityPoints() > 0 then
+        local talent_bar = self.talentlevel + 2
         local talents = {self.bot:GetAbilityByIndex(2 + 2 * talent_bar), self.bot:GetAbilityByIndex(3 + 2 * talent_bar)}
         self.bot:UpgradeAbility(talents[math.random(2)])
+
+        self.talentlevel = (self.talentlevel or 0) + 1
+    elseif self.talentlevel >= 4 and level >= 27 and self.bot:GetAbilityPoints() > 0 then
+        local talent_bar = self.talentlevel - 2
+        local talents = {self.bot:GetAbilityByIndex(2 + 2 * talent_bar), self.bot:GetAbilityByIndex(3 + 2 * talent_bar)}
+        self.bot:UpgradeAbility(talents[1]:GetLevel() == 0 and talents[1] or talents[2])
+
+        self.talentlevel = self.talentlevel + 1
     end
+    
 
     -- Upgrade Ability
-    while self.bot:GetAbilityPoints() > 0 do
-        local basic_chosen = basic[math.random(#basic)]
-        if basic_chosen:GetLevel() * 2 < level then -- Prevents level 1 abilites from getting levelled up at level 2 and etc.
+    table.shuffle(basic)
+
+    for i = 1, #basic do
+        local basic_chosen = basic[i]
+        if basic_chosen:GetLevel() * 2 < level and basic_chosen:GetLevel() < basic_chosen:GetMaxLevel() and self.bot:GetAbilityPoints() > 0 then -- Prevents level 1 abilites from getting levelled up at level 2 and etc.
             self.bot:UpgradeAbility(basic_chosen)
 
             -- Turn on the attacks!
@@ -709,6 +729,12 @@ function OverthrowBot:SpendAbilityPoints()
                 basic_chosen:ToggleAutoCast()
             end
         end
+    end
+
+    -- Upgrade stats
+    local special_bonus_attributes = self.bot:FindAbilityByName("special_bonus_attributes")
+    if OverthrowBot.talent_levels[level] and special_bonus_attributes and not special_bonus_attributes:IsNull() and special_bonus_attributes:GetLevel() < special_bonus_attributes:GetMaxLevel() then
+        self.bot:UpgradeAbility(special_bonus_attributes)
     end
 end
 
@@ -850,9 +876,10 @@ function OverthrowBot:CreateBots()
                 local choice_index = math.random(#bot_choices)
                 local new_hero_name = bot_choices[choice_index]
                 table.remove(bot_choices, choice_index)
-
-                GameRules:AddBotPlayerWithEntityScript(new_hero_name, OverthrowBot:CreateBotName(), selected_team, "", false)
-                PrecacheUnitByNameAsync(new_hero_name, function(...) end)
+                
+                PrecacheUnitByNameAsync(new_hero_name, function()
+                    GameRules:AddBotPlayerWithEntityScript(new_hero_name, OverthrowBot:CreateBotName(), selected_team, "", false)
+                end)
             end
         end
     end
