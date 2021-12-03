@@ -507,6 +507,41 @@ OverthrowBot.Decision_Ability = {
             OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
     end,
+
+    tinker_keen_teleport = function(self, hTarget, hAbility)
+        if hAbility:GetLevel() < 3 then
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        else
+            OverthrowBot.Decision_CastTargetPoint(self, hTarget, hAbility)
+        end
+    end,
+
+    tinker_rearm = function(self, hTarget, hAbility)
+        local abilities_on_cooldown = 0
+        for i = 0, 5 do
+            local ability = self.bot:GetAbilityByIndex(i)
+            if ability and ability:GetCooldownTimeRemaining() > 0 then
+                abilities_on_cooldown = abilities_on_cooldown + 1
+            end
+        end
+
+        if RollPercentage(abilities_on_cooldown * 33) then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end,
+
+    templar_assassin_trap = function(self, hTarget, hAbility)
+        local counter = self.bot:FindModifierByName("modifier_templar_assassin_psionic_trap_counter")
+        if counter and counter:GetStackCount() > 0 then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        else
+            OverthrowBot.Decision_AttackTarget(self, hTarget)
+        end
+    end
+
+    
 }
 
 OverthrowBot.spell_cast_nearby = {
@@ -521,6 +556,12 @@ OverthrowBot.spell_cast_nearby = {
     tidehunter_ravage = "speed",
     razor_plasma_field = "radius",
     brewmaster_thunder_clap = "radius",
+    juggernaut_blade_fury = "blade_fury_radius",
+    dark_willow_bedlam = "attack_radius",
+    crystal_maiden_freezing_field = "radius",
+    luna_eclipse = "radius",
+    rattletrap_battery_assault = "radius",
+    leshrac_diabolic_edict = "radius"
 }
 
 --
@@ -583,9 +624,6 @@ OverthrowBot.spell_filter_direct = {
 
     -- Spectre
     ["spectre_reality"] = true,
-
-    -- Templar
-    ["templar_assassin_trap"] = true,
 
     -- Underlord
     ["abyssal_underlord_cancel_dark_rift"] = true,
@@ -668,7 +706,7 @@ OverthrowBot.levellable_basic_exceptions = {
     nevermore_necromastery = true,
     nevermore_dark_lord = true,
 }
-OverthrowBot.talent_levels = {
+OverthrowBot.attribute_levels = {
     [17] = true,
     [19] = true,
     [21] = true,
@@ -700,16 +738,17 @@ function OverthrowBot:SpendAbilityPoints()
     end
 
     -- Upgrade Talent
-    self.talentlevel = self.talentlevel or 0
-    if self.talentlevel < 4 and level >= (2 + (self.talentlevel or 0)) * 5 and self.bot:GetAbilityPoints() > 0 then
+    if self.talentlevel < 4 and level >= (2 + self.talentlevel) * 5 then
         local talent_bar = self.talentlevel + 2
         local talents = {self.bot:GetAbilityByIndex(2 + 2 * talent_bar), self.bot:GetAbilityByIndex(3 + 2 * talent_bar)}
+        self.bot:SetAbilityPoints(1)
         self.bot:UpgradeAbility(talents[math.random(2)])
 
-        self.talentlevel = (self.talentlevel or 0) + 1
-    elseif self.talentlevel >= 4 and level >= 27 and self.bot:GetAbilityPoints() > 0 then
+        self.talentlevel = self.talentlevel + 1
+    elseif self.talentlevel >= 4 and self.talentlevel < 8 and level >= (23 + self.talentlevel) then
         local talent_bar = self.talentlevel - 2
         local talents = {self.bot:GetAbilityByIndex(2 + 2 * talent_bar), self.bot:GetAbilityByIndex(3 + 2 * talent_bar)}
+        self.bot:SetAbilityPoints(1)
         self.bot:UpgradeAbility(talents[1]:GetLevel() == 0 and talents[1] or talents[2])
 
         self.talentlevel = self.talentlevel + 1
@@ -733,7 +772,8 @@ function OverthrowBot:SpendAbilityPoints()
 
     -- Upgrade stats
     local special_bonus_attributes = self.bot:FindAbilityByName("special_bonus_attributes")
-    if OverthrowBot.talent_levels[level] and special_bonus_attributes and not special_bonus_attributes:IsNull() and special_bonus_attributes:GetLevel() < special_bonus_attributes:GetMaxLevel() then
+    if OverthrowBot.attribute_levels[level] and special_bonus_attributes and not special_bonus_attributes:IsNull() and special_bonus_attributes:GetLevel() < special_bonus_attributes:GetMaxLevel() then
+        self.bot:SetAbilityPoints(1)
         self.bot:UpgradeAbility(special_bonus_attributes)
     end
 end
@@ -939,16 +979,16 @@ ListenToGameEvent("npc_spawned", function(keys)
 	local unit = keys.entindex and EntIndexToHScript(keys.entindex)
 
 	if unit then
-        if unit:GetPlayerOwnerID() > -1 and PlayerResource:IsFakeClient(unit:GetPlayerOwnerID()) and unit:IsRealHero() and not unit:HasModifier("modifier_bot") then
-            unit:AddNewModifier(unit, nil, "modifier_bot", {})
-            if not OverthrowBot.unit_spawn_ai_enabled then
-                OverthrowBot:RelocateBotToSpawn(unit)
+        if unit:GetPlayerOwnerID() > -1 and PlayerResource:IsFakeClient(unit:GetPlayerOwnerID()) and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS then
+            if unit:IsRealHero() and not (unit:IsIllusion() or unit:IsSummoned()) then
+                if not unit:HasModifier("modifier_bot") then unit:AddNewModifier(unit, nil, "modifier_bot", {}) end
+                if not OverthrowBot.unit_spawn_ai_enabled then
+                    OverthrowBot:RelocateBotToSpawn(unit)
+                end
+            else
+                unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
             end
         end
-
-		if IsServer() and OverthrowBot.unit_spawn_ai_enabled and not OverthrowBot.unit_ai_filter[unit:GetUnitName()] and unit:GetPlayerOwnerID() > -1 and PlayerResource:IsFakeClient(unit:GetPlayerOwnerID()) and unit:GetTeamNumber() ~= DOTA_TEAM_NEUTRALS and (unit:IsIllusion() or unit:IsSummoned()) then
-			unit:AddNewModifier(unit, nil, "modifier_bot_simple", {})
-		end
 	end
 
 end, nil)

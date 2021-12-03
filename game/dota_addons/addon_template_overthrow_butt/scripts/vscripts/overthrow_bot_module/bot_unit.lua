@@ -29,6 +29,12 @@ function modifier_bot_simple:OnCreated()
 end
 
 function modifier_bot_simple:OnIntervalThink()
+    if GameRules:State_Get() > DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
+        self:Destroy()
+        self:StartIntervalThink(-1)
+        return
+    end
+
     OverthrowBot.OnIntervalThink(self)
     --[[
     if (not self.bot or self.bot:IsNull()) or not self.bot:IsAlive() then return end   -- If the bot is dead or missing

@@ -36,5 +36,19 @@ function modifier_bot:OnCreated()
 end
 
 function modifier_bot:OnIntervalThink()
+    if GameRules:State_Get() > DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
+        self:Destroy()
+        self:StartIntervalThink(-1)
+        return
+    end
+
     OverthrowBot.OnIntervalThink(self)
+end
+
+function modifier_bot:GetEffectName()
+	return "particles/custom/ai_ring.vpcf"
+end
+
+function modifier_bot:GetEffectAttachType()
+	return PATTACH_ABSORIGIN_FOLLOW 
 end
