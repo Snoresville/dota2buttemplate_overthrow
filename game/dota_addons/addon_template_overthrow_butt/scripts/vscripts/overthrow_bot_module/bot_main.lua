@@ -539,8 +539,12 @@ OverthrowBot.Decision_Ability = {
         else
             OverthrowBot.Decision_AttackTarget(self, hTarget)
         end
-    end
+    end,
 
+    brewmaster_drunken_brawler = function(self, hTarget, hAbility)
+        OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        hAbility:StartCooldown(5)
+    end
     
 }
 
@@ -611,6 +615,10 @@ OverthrowBot.spell_filter_direct = {
 
     -- Phoenix
     ["phoenix_sun_ray_stop"] = true,
+    ["phoenix_icarus_dive_stop"] = true,
+
+    -- Primal Beast
+    ["primal_beast_onslaught_release"] = true,
     
     -- Rubick
     ["rubick_empty1"] = true,
@@ -618,12 +626,16 @@ OverthrowBot.spell_filter_direct = {
     ["rubick_hidden1"] = true,
     ["rubick_hidden2"] = true,
     ["rubick_hidden3"] = true,
+    ["rubick_telekinesis_land"] = true,
 
     -- Shadow Demon
     ["shadow_demon_shadow_poison_release"] = true,
 
     -- Spectre
     ["spectre_reality"] = true,
+
+    -- Tusk
+    ["tusk_launch_snowball"] = true,
 
     -- Underlord
     ["abyssal_underlord_cancel_dark_rift"] = true,
@@ -810,6 +822,7 @@ function OverthrowBot:CreateItemProgression()
         "item_nullifier",
         "item_silver_edge",
         "item_ethereal_blade",
+        "item_revenants_brooch",
 
         -- Artifacts
         "item_satanic",
@@ -849,8 +862,9 @@ function OverthrowBot:CreateItemProgression()
         -- Support
         "item_guardian_greaves",
         "item_pipe",
-        "item_vladmir",
+        "item_wraith_pact",
         "item_spirit_vessel",
+        "item_boots_of_bearing",
 
         -- Accessories
         "item_travel_boots_2",
