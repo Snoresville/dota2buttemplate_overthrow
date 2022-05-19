@@ -22,8 +22,8 @@ function InternalFilters:AbilityTuningValueFilter(event)
 end
 
 function InternalFilters:BountyRunePickupFilter(event)
-	event.xp_bounty = event.xp_bounty * BUTTINGS.XP_GAIN_PERCENTAGE * 0.01
-	event.gold_bounty = event.gold_bounty * BUTTINGS.GOLD_GAIN_PERCENTAGE * 0.01
+	event.xp_bounty = event.xp_bounty * Buttings:GetQuick("XP_GAIN_PERCENTAGE") * 0.01
+	event.gold_bounty = event.gold_bounty * Buttings:GetQuick("GOLD_GAIN_PERCENTAGE") * 0.01
 
 	return Filters:BountyRunePickupFilter(event)
 end
@@ -33,10 +33,10 @@ function InternalFilters:DamageFilter(event)
 end
 
 function InternalFilters:ExecuteOrderFilter(event)
-	if 1==BUTTINGS.BUYBACK_RULES and DOTA_UNIT_ORDER_BUYBACK==event.order_type then
+	if 1==Buttings:GetQuick("BUYBACK_RULES") and DOTA_UNIT_ORDER_BUYBACK==event.order_type then
 		local iUnit = event.units and event.units["0"]
 		self.bbCount = self.bbCount or {}
-		self.bbCount[iUnit] = self.bbCount[iUnit] or BUTTINGS.BUYBACK_LIMIT
+		self.bbCount[iUnit] = self.bbCount[iUnit] or Buttings:GetQuick("BUYBACK_LIMIT")
 		local hero = EntIndexToHScript(iUnit)
 		if self.bbCount[iUnit] <= 0 then
 			HUDError("No buybacks left", hero:GetPlayerOwnerID())
@@ -44,7 +44,7 @@ function InternalFilters:ExecuteOrderFilter(event)
 		else
 			self.bbCount[iUnit] = self.bbCount[iUnit] - 1 
 		end
-		hero:SetThink(function() hero:SetBuybackCooldownTime(BUTTINGS.BUYBACK_COOLDOWN) end, 0.2)
+		hero:SetThink(function() hero:SetBuybackCooldownTime(Buttings:GetQuick("BUYBACK_COOLDOWN")) end, 0.2)
 	end
 	if EditFilterToCourier and false==EditFilterToCourier(event) then
 		return false
@@ -65,7 +65,7 @@ function InternalFilters:ModifierGainedFilter(event)
 end
 
 function InternalFilters:GetTeamCount()
-	if BUTTINGS.TEAM_COUNT_COMPENSATION == 0 then return 2 end
+	if Buttings:GetQuick("TEAM_COUNT_COMPENSATION") == 0 then return 2 end
 
 	local teamCount = 0
 	for i = DOTA_TEAM_GOODGUYS, DOTA_TEAM_CUSTOM_8 do
@@ -76,7 +76,7 @@ function InternalFilters:GetTeamCount()
 end
 
 function InternalFilters:ModifyExperienceFilter(event)
-	event.experience = event.experience * BUTTINGS.XP_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 1)
+	event.experience = event.experience * Buttings:GetQuick("XP_GAIN_PERCENTAGE") * 0.01 * (InternalFilters:GetTeamCount() - 1)
 
 	-- PrintTable(event)
 	local playerID = event.player_id_const
@@ -93,7 +93,7 @@ function InternalFilters:ModifyExperienceFilter(event)
 	teamHeroes[event.player_id_const] = nil
 	local count = table.length(teamHeroes)
 
-	local singleAmt = event.experience * BUTTINGS.SHARED_XP_PERCENTAGE * 0.01 / count
+	local singleAmt = event.experience * Buttings:GetQuick("SHARED_XP_PERCENTAGE") * 0.01 / count
 	singleAmt = math.floor(singleAmt + 0.5)
 
 	for h,hero in pairs(teamHeroes) do
@@ -105,7 +105,7 @@ function InternalFilters:ModifyExperienceFilter(event)
 end
 
 function InternalFilters:ModifyGoldFilter(event)
-	event.gold = event.gold * BUTTINGS.GOLD_GAIN_PERCENTAGE * 0.01 * (InternalFilters:GetTeamCount() - 1)
+	event.gold = event.gold * Buttings:GetQuick("GOLD_GAIN_PERCENTAGE") * 0.01 * (InternalFilters:GetTeamCount() - 1)
 
 	-- PrintTable(event) 
 	local playerID = event.player_id_const
@@ -123,7 +123,7 @@ function InternalFilters:ModifyGoldFilter(event)
 	teamPlayers[event.player_id_const] = nil
 	local count = table.length(teamPlayers)
 
-	local singleAmt = event.gold * BUTTINGS.SHARED_GOLD_PERCENTAGE * 0.01 / count
+	local singleAmt = event.gold * Buttings:GetQuick("SHARED_GOLD_PERCENTAGE") * 0.01 / count
 	singleAmt = math.floor(singleAmt + 0.5)
 
 	for tp,tPlayer in pairs(teamPlayers) do

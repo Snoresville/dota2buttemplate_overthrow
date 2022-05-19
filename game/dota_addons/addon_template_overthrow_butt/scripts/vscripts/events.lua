@@ -135,14 +135,14 @@ function COverthrowGameMode:OnGameRulesStateChange()
 
 	if nNewState == DOTA_GAMERULES_STATE_PRE_GAME then
 		nCOUNTDOWNTIMER = 601
-		if BUTTINGS.ALT_TIME_LIMIT then nCOUNTDOWNTIMER = BUTTINGS.ALT_TIME_LIMIT * 60 + 1 end
-		self.TEAM_KILLS_TO_WIN = BUTTINGS.ALT_KILL_LIMIT or 30
+		if Buttings:GetQuick("ALT_TIME_LIMIT") then nCOUNTDOWNTIMER = Buttings:GetQuick("ALT_TIME_LIMIT") * 60 + 1 end
+		self.TEAM_KILLS_TO_WIN = Buttings:GetQuick("ALT_KILL_LIMIT") or 30
 		
 		if nCOUNTDOWNTIMER < 1 then nCOUNTDOWNTIMER = 1 end
 		if self.TEAM_KILLS_TO_WIN < 1 then self.TEAM_KILLS_TO_WIN = 10 end
 		
 		-- To be displayed properly on the top scoreboard that there is no kill limit
-		if BUTTINGS.NO_KILL_LIMIT == 1 then self.TEAM_KILLS_TO_WIN = -1 end 
+		if Buttings:GetQuick("NO_KILL_LIMIT") == 1 then self.TEAM_KILLS_TO_WIN = -1 end 
 		
 		print( "Kills to win = " .. tostring(self.TEAM_KILLS_TO_WIN) )
 
@@ -216,7 +216,7 @@ function COverthrowGameMode:OnTeamKillCredit( event )
 	}
 	
 	-- Prevents game victories through kill limits
-	if BUTTINGS.NO_KILL_LIMIT == 1 then
+	if Buttings:GetQuick("NO_KILL_LIMIT") == 1 then
 		CustomGameEventManager:Send_ServerToAllClients( "kill_event", broadcast_kill_event )
 		return nil
 	end

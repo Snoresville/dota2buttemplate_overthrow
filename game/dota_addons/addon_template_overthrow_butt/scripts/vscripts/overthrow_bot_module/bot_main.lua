@@ -940,7 +940,7 @@ function OverthrowBot:CreateBots()
 end
 
 ListenToGameEvent("game_rules_state_change", function()
-    if BUTTINGS and BUTTINGS.USE_BOTS == 0 then return end
+    if BUTTINGS and Buttings:GetQuick("USE_BOTS") == 0 then return end
     local state = GameRules:State_Get()
 	
     if state == DOTA_GAMERULES_STATE_HERO_SELECTION then
