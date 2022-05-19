@@ -33,11 +33,12 @@
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"1"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
-		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES | DOTA_ABILITY_BEHAVIOR_OVERSHOOT"
 
 		// Stats
 		//-------------------------------------------------------------------------------------------------------------
-		"AbilityCastRange"				"0"
+		"AbilityCastRange"				"1200"
+		"AbilityOvershootCastRange"     "960"
 		"AbilityCastPoint"				"0.0"
 		"AbilityCooldown"				"15.0"
 		"AbilityManaCost"				"0"
@@ -83,11 +84,12 @@
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"600"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
-		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES | DOTA_ABILITY_BEHAVIOR_OVERSHOOT"
 
 		// Stats
 		//-------------------------------------------------------------------------------------------------------------
-		"AbilityCastRange"				"0"
+		"AbilityCastRange"				"1200"
+		"AbilityOvershootCastRange"     "960"
 		"AbilityCastPoint"				"0.0"
 		"AbilityCooldown"				"15.0"
 		"AbilityManaCost"				"0"
@@ -163,11 +165,12 @@
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"603"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
-		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES | DOTA_ABILITY_BEHAVIOR_OVERSHOOT"
 
 		// Stats
 		//-------------------------------------------------------------------------------------------------------------
-		"AbilityCastRange"				"0"
+		"AbilityCastRange"				"1200"
+		"AbilityOvershootCastRange"     "960"
 		"AbilityCastPoint"				"0.0"
 		"AbilityCooldown"				"15.0"
 		"AbilityManaCost"				"0"
@@ -205,11 +208,12 @@
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"604"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
-		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES | DOTA_ABILITY_BEHAVIOR_OVERSHOOT"
 
 		// Stats
 		//-------------------------------------------------------------------------------------------------------------
-		"AbilityCastRange"				"0"
+		"AbilityCastRange"				"1200"
+		"AbilityOvershootCastRange"     "960"
 		"AbilityCastPoint"				"0.0"
 		"AbilityCooldown"				"15.0"
 		"AbilityManaCost"				"0"
@@ -1501,13 +1505,8 @@
 			"01"
 			{
 				"var_type"				"FIELD_FLOAT"
-				"hero_lifesteal"		"10"
-			}			
-			"02"
-			{
-				"var_type"				"FIELD_FLOAT"
-				"creep_lifesteal"		"2"
-			}	
+				"spell_lifesteal"		"10"
+			}
 		}
 	}
 	
@@ -3994,6 +3993,12 @@
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"73"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+		
+		// Stats
+		//-------------------------------------------------------------------------------------------------------------
+		"MaxUpgradeLevel"				"2"
+		"ItemBaseLevel"					"1"
+		"ItemLevelByGameTime"			"25"
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
@@ -4009,11 +4014,11 @@
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityValues"
 		{
-			"bonus_strength"		"5"
-			"bonus_agility"			"2"
-			"bonus_intellect"		"2"
-			"bonus_damage"			"3"
-			"bonus_health_regen"	"1"
+			"bonus_strength"		"5 10"
+			"bonus_agility"			"2 4"
+			"bonus_intellect"		"2 4"
+			"bonus_damage"			"3 6"
+			"bonus_health_regen"	"1 2"
 			"clock_time"			"25"
 		}
 	}
@@ -4052,6 +4057,12 @@
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"75"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+		
+		// Stats
+		//-------------------------------------------------------------------------------------------------------------
+		"MaxUpgradeLevel"				"2"
+		"ItemBaseLevel"					"1"
+		"ItemLevelByGameTime"			"25"
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
@@ -4067,11 +4078,11 @@
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityValues"
 		{
-				"bonus_agility"			"5"
-				"bonus_strength"		"2"
-				"bonus_intellect"		"2"
-				"bonus_attack_speed"			"5"
-				"bonus_armor"			"2"
+				"bonus_agility"			"5 10"
+				"bonus_strength"		"2 4"
+				"bonus_intellect"		"2 4"
+				"bonus_attack_speed"	"5 10"
+				"bonus_armor"			"2 4"
 				"clock_time"			"25"
 		}
 	}
@@ -4109,6 +4120,12 @@
 		//-------------------------------------------------------------------------------------------------------------
 		"ID"							"77"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+		
+		// Stats
+		//-------------------------------------------------------------------------------------------------------------
+		"MaxUpgradeLevel"				"2"
+		"ItemBaseLevel"					"1"
+		"ItemLevelByGameTime"			"25"
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
@@ -4124,11 +4141,11 @@
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityValues"
 		{
-			"bonus_intellect"		"5"
-			"bonus_strength"		"2"
-			"bonus_agility"			"2"
-			"bonus_mana_reduction"	"4"
-			"bonus_mana_regen"		"0.6"
+			"bonus_intellect"		"5 10"
+			"bonus_strength"		"2 4"
+			"bonus_agility"			"2 4"
+			"bonus_mana_reduction"	"4 8"
+			"bonus_mana_regen"		"0.6 1.2"
 			"clock_time"			"25"
 		}
 	}
@@ -4230,7 +4247,7 @@
 		
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"400"	
+		"ItemCost"						"250"	
 		"ItemShopTags"					""
 		
 		// Recipe
@@ -4256,7 +4273,7 @@
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"2600"
+		"ItemCost"						"2450"
 		"ItemShopTags"					"damage;armor;regen_mana"
 		"ItemQuality"					"rare"
 		"ItemAliases"					"vladmir's offering;vlads"
@@ -4351,7 +4368,7 @@
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"4200"
+		"ItemCost"						"4050"
 		"ItemShopTags"					"damage;armor;regen_mana"
 		"ItemQuality"					"rare"
 		"ItemAliases"					"pact;wp"
@@ -4365,12 +4382,13 @@
 				"bonus_health"			"250"
 				"bonus_mana"			"250"
 				"armor_aura"		"3.0"
-				"mana_regen_aura"		"1.75"
-				"lifesteal_aura"			"15"
+				"mana_regen_aura"		"2.0"
+				"lifesteal_aura"			"18"
 				"damage_aura"			"18"
-				"aura_radius"	"900" 
-				"damage_penalty_aura"	"25"
-				"aura_dps"	"25"
+				"aura_radius"	"1200" 
+				"pact_aura_radius"	"900" 
+				"damage_penalty_aura"	"30"
+				"aura_dps"	"30"
 		}
 	}
 
@@ -4737,7 +4755,7 @@
 		
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"335"	
+		"ItemCost"						"375"	
 		"ItemShopTags"					""
 		
 		// Recipe
@@ -4784,7 +4802,7 @@
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"840"
+		"ItemCost"						"880"
 		"ItemShopTags"					"regen_mana;str;boost_health"
 		"ItemQuality"					"rare"
 		"ItemAliases"					"urn of shadows"
@@ -7264,8 +7282,7 @@
 		{
 				"bonus_health"			"550"
 				"bonus_mana"			"550"
-				"hero_lifesteal"		"25"
-				"creep_lifesteal"		"5"
+				"spell_lifesteal"		"25"
 				"buff_duration"			"6"
 				"lifesteal_multiplier"	"2"
 				"hp_cost"				"10"
@@ -7832,7 +7849,7 @@
 		
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"1000"	
+		"ItemCost"						"1100"	
 		"ItemShopTags"					""
 		
 		// Recipe
@@ -7877,7 +7894,7 @@
 
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
-		"ItemCost"						"2840"
+		"ItemCost"						"2980"
 		"ItemQuality"					"rare"
 		"ItemAliases"					"sv;spirit vessel"
 		"ItemDeclarations"				"DECLARE_PURCHASES_TO_TEAMMATES | DECLARE_PURCHASES_TO_SPECTATORS"
@@ -8392,12 +8409,7 @@
 			"05"
 			{
 				"var_type"				"FIELD_FLOAT"
-				"hero_lifesteal"		"20"
-			}			
-			"06"
-			{
-				"var_type"				"FIELD_FLOAT"
-				"creep_lifesteal"		"4"
+				"spell_lifesteal"		"20"
 			}	
 		}
 	}
@@ -9742,38 +9754,14 @@
 		
 		// Special	
 		//-------------------------------------------------------------------------------------------------------------
-		"AbilitySpecial"
+		"AbilityValues"
 		{
-			"01"
-			{
-				"var_type"				"FIELD_INTEGER"
 				"bonus_strength"		"25"
-			}
-			"02"
-			{
-				"var_type"				"FIELD_INTEGER"
-				"bonus_damage"			"45"
-			}
-			"04"
-			{
-				"var_type"				"FIELD_INTEGER"
+				"bonus_damage"			"38"
 				"lifesteal_percent"		"25"
-			}
-			"05"
-			{
-				"var_type"				"FIELD_INTEGER"
 				"unholy_lifesteal_percent"	"175"
-			}
-			"06"
-			{
-				"var_type"				"FIELD_INTEGER"
 				"unholy_lifesteal_total_tooltip"	"200"
-			}
-			"07"
-			{
-				"var_type"				"FIELD_FLOAT"
 				"unholy_duration"		"6.0"
-			}
 		}
 	}
 
@@ -9968,8 +9956,10 @@
 				"bonus_all_stats"		"22"
 				"bonus_health"			"220"
 				"bonus_mana"			"220"
-				"cold_slow_melee"	"-25"
-				"cold_slow_ranged"	"-50"
+				"cold_slow_melee"	"-20"
+				"cold_attack_slow_melee"	"-30"
+				"cold_slow_ranged"	"-40"
+				"cold_attack_slow_ranged"	"-60"
 				"cold_duration"	"3.0"
 				"heal_reduction"	"40"
 		}
@@ -10209,7 +10199,7 @@
 		// Item Info
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityManaCost"				"0"
-		"ItemCost"						"6325"
+		"ItemCost"						"6175"
 		"ItemShopTags"					"damage;armor;unique;hard_to_tag"
 		"ItemQuality"					"artifact"
 		"ItemAliases"					"hoto;helm of the overlord"
@@ -10287,12 +10277,12 @@
 			"14"
 			{
 				"var_type"				"FIELD_FLOAT"
-				"mana_regen_aura"		"1.75"
+				"mana_regen_aura"		"2"
 			}
 			"15"
 			{
 				"var_type"				"FIELD_INTEGER"
-				"lifesteal_aura"			"15"
+				"lifesteal_aura"			"18"
 			}
 			"16"
 			{
@@ -10576,7 +10566,7 @@
 				"corruption_duration"	"7.0"
 				"bonus_damage_per_kill"	"2"
 				"bonus_damage_per_assist"	"1"
-				"max_damage"			"25"
+				"max_damage"			"20"
 		}
 	}
 
@@ -14814,7 +14804,7 @@
 		{
 			"01"
 			{
-				"var_type"				"FIELD_INTEGER"
+				"var_type"				"FIELD_FLOAT"
 				"knockback_distance"			"250"
 			}
 			"02"
@@ -15466,7 +15456,7 @@
 			}
 			"02"
 			{
-				"var_type"				"FIELD_INTEGER"
+				"var_type"				"FIELD_FLOAT"
 				"knockback_distance"			"50"
 			}
 			"03"

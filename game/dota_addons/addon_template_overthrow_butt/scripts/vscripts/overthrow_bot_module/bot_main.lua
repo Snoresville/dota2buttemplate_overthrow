@@ -544,8 +544,23 @@ OverthrowBot.Decision_Ability = {
     brewmaster_drunken_brawler = function(self, hTarget, hAbility)
         OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
         hAbility:StartCooldown(5)
-    end
+    end,
     
+    primal_beast_uproar = function(self, hTarget, hAbility)
+        local counter = self.bot:FindModifierByName("modifier_primal_beast_uproar")
+        if counter and counter:GetStackCount() == hAbility:GetSpecialValueFor("stack_limit") then
+            OverthrowBot.Decision_CastTargetNone(self, hTarget, hAbility)
+        end
+    end,
+
+    elder_titan_move_spirit = function(self, hTarget, hAbility)
+        local enemy_pos = FindUnitsInRadius(self.bot:GetTeam(), self.bot:GetAbsOrigin(), nil, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_ENEMY, DOTA_UNIT_TARGET_HERO + DOTA_UNIT_TARGET_CREEP, DOTA_UNIT_TARGET_FLAG_FOW_VISIBLE, FIND_FARTHEST, false)
+        if #enemy_pos > 0 then
+            OverthrowBot.Decision_CastTargetPoint(self, enemy_pos[1], hAbility)
+        end
+        
+        OverthrowBot.Decision_AttackTarget(self, hTarget)
+    end
 }
 
 OverthrowBot.spell_cast_nearby = {
